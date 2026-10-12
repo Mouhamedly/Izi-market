@@ -1,7 +1,7 @@
 import { Business, Contact, Conversation, FAQ, CatalogItem, Message, Appointment, Quote } from "@/types/database";
 
 export const INITIAL_BUSINESS: Business = {
-  id: "biz_senegal_01",
+  id: "00000000-0000-0000-0000-000000000001",
   name: "Teranga Immo & Services",
   sector: "Immobilier & Résidences à Dakar",
   ai_enabled: true,
@@ -37,28 +37,28 @@ export const INITIAL_BUSINESS: Business = {
 export const INITIAL_FAQS: FAQ[] = [
   {
     id: "faq_1",
-    business_id: "biz_senegal_01",
+    business_id: "00000000-0000-0000-0000-000000000001",
     question: "Quels sont les frais d'agence pour une location à Dakar ?",
     answer: "Nos frais d'agence s'élèvent à un mois de loyer hors charges, conformément aux usages légaux au Sénégal, payable à la signature du bail.",
     created_at: new Date().toISOString()
   },
   {
     id: "faq_2",
-    business_id: "biz_senegal_01",
+    business_id: "00000000-0000-0000-0000-000000000001",
     question: "Proposez-vous des visites le week-end ?",
     answer: "Oui, nos agents organisent des visites le samedi de 09h00 à 15h00 sur rendez-vous confirmé 24h à l'avance.",
     created_at: new Date().toISOString()
   },
   {
     id: "faq_3",
-    business_id: "biz_senegal_01",
+    business_id: "00000000-0000-0000-0000-000000000001",
     question: "Quelles sont les pièces à fournir pour constituer un dossier ?",
     answer: "Il vous faut : une copie de votre CNI/Passeport, vos 3 derniers bulletins de salaire ou justificatifs de revenus, ainsi que le versement de la caution (2 mois de loyer).",
     created_at: new Date().toISOString()
   },
   {
     id: "faq_4",
-    business_id: "biz_senegal_01",
+    business_id: "00000000-0000-0000-0000-000000000001",
     question: "Quels modes de paiement acceptez-vous ?",
     answer: "Nous acceptons les virements bancaires, chèques certifiés, ainsi que les paiements sécurisés via Wave et Orange Money.",
     created_at: new Date().toISOString()
@@ -68,7 +68,7 @@ export const INITIAL_FAQS: FAQ[] = [
 export const INITIAL_CATALOG: CatalogItem[] = [
   {
     id: "cat_1",
-    business_id: "biz_senegal_01",
+    business_id: "00000000-0000-0000-0000-000000000001",
     title: "Appartement F4 Haut Standing - Almadies",
     price: "850 000 FCFA / mois",
     description: "3 chambres climatisées avec salle d'eau privative, grand salon lumineux avec terrasse vue mer, cuisine équipée, groupe électrogène et ascenseur.",
@@ -87,7 +87,7 @@ export const INITIAL_CATALOG: CatalogItem[] = [
   },
   {
     id: "cat_2",
-    business_id: "biz_senegal_01",
+    business_id: "00000000-0000-0000-0000-000000000001",
     title: "Villa R+1 avec Piscine - Mermoz Pyrotechnie",
     price: "1 500 000 FCFA / mois",
     description: "4 chambres autonomes, piscine privative, jardin arboré, quartier calme et sécurisé 24h/24, garage 2 voitures.",
@@ -105,7 +105,7 @@ export const INITIAL_CATALOG: CatalogItem[] = [
   },
   {
     id: "cat_3",
-    business_id: "biz_senegal_01",
+    business_id: "00000000-0000-0000-0000-000000000001",
     title: "Studio Meublé Moderne - Plateau (Centre-ville)",
     price: "450 000 FCFA / mois",
     description: "Studio tout confort, fibre internet haut débit incluse, gardiennage 24h, idéal pour cadres ou expatriés en mission.",
@@ -122,7 +122,7 @@ export const INITIAL_CATALOG: CatalogItem[] = [
   },
   {
     id: "cat_4",
-    business_id: "biz_senegal_01",
+    business_id: "00000000-0000-0000-0000-000000000001",
     title: "Plateau de Bureaux 180 m² - VDN",
     price: "1 200 000 FCFA / mois",
     description: "Grand espace ouvert modulable, 3 bureaux de direction, kitchenette, sanitaires H/F, groupe électrogène, accès direct VDN.",
@@ -139,7 +139,7 @@ export const INITIAL_CATALOG: CatalogItem[] = [
   },
   {
     id: "cat_5",
-    business_id: "biz_senegal_01",
+    business_id: "00000000-0000-0000-0000-000000000001",
     title: "Villa R+2 de Prestige en Vente - Ngor Almadies",
     price: "245 000 000 FCFA",
     description: "Titre Foncier individuel, 5 suites parentales, piscine à débordement, rooftop avec vue panoramique, matériaux de luxe importés d'Italie.",
@@ -158,7 +158,7 @@ export const INITIAL_CATALOG: CatalogItem[] = [
   },
   {
     id: "cat_6",
-    business_id: "biz_senegal_01",
+    business_id: "00000000-0000-0000-0000-000000000001",
     title: "Terrain Viabilisé 350 m² - Saly Joseph",
     price: "28 000 000 FCFA",
     description: "Parcelle clôturée avec compteur eau et électricité déjà installés. Accès goudronné, à 5 minutes de la plage et de l'autoroute à péage.",
@@ -178,7 +178,7 @@ export const INITIAL_CATALOG: CatalogItem[] = [
 export const INITIAL_CONTACTS: Contact[] = [
   {
     id: "cnt_1",
-    business_id: "biz_senegal_01",
+    business_id: "00000000-0000-0000-0000-000000000001",
     wa_phone: "+221774567890",
     name: "Moussa Diop",
     status: "rdv",
@@ -190,7 +190,7 @@ export const INITIAL_CONTACTS: Contact[] = [
   },
   {
     id: "cnt_2",
-    business_id: "biz_senegal_01",
+    business_id: "00000000-0000-0000-0000-000000000001",
     wa_phone: "+221781234567",
     name: "Fatou Bintou Ndiaye",
     status: "interesse",
@@ -202,7 +202,7 @@ export const INITIAL_CONTACTS: Contact[] = [
   },
   {
     id: "cnt_3",
-    business_id: "biz_senegal_01",
+    business_id: "00000000-0000-0000-0000-000000000001",
     wa_phone: "+221765554321",
     name: "Dr. Ousmane Sow",
     status: "negociation",
@@ -214,7 +214,7 @@ export const INITIAL_CONTACTS: Contact[] = [
   },
   {
     id: "cnt_4",
-    business_id: "biz_senegal_01",
+    business_id: "00000000-0000-0000-0000-000000000001",
     wa_phone: "+221709876543",
     name: "Aïssatou Ba",
     status: "client",
@@ -226,7 +226,7 @@ export const INITIAL_CONTACTS: Contact[] = [
   },
   {
     id: "cnt_5",
-    business_id: "biz_senegal_01",
+    business_id: "00000000-0000-0000-0000-000000000001",
     wa_phone: "+221773332211",
     name: "Cheikh Tidiane Sy",
     status: "nouveau",
@@ -241,7 +241,7 @@ export const INITIAL_CONTACTS: Contact[] = [
   },
   {
     id: "cnt_6",
-    business_id: "biz_senegal_01",
+    business_id: "00000000-0000-0000-0000-000000000001",
     wa_phone: "+221776543210",
     name: "Ibrahima Fall",
     status: "interesse",
@@ -256,7 +256,7 @@ export const INITIAL_CONTACTS: Contact[] = [
   },
   {
     id: "cnt_7",
-    business_id: "biz_senegal_01",
+    business_id: "00000000-0000-0000-0000-000000000001",
     wa_phone: "+221782223344",
     name: "Mariama Sarr",
     status: "nouveau",
@@ -274,7 +274,7 @@ export const INITIAL_CONTACTS: Contact[] = [
 export const INITIAL_CONVERSATIONS: Conversation[] = [
   {
     id: "conv_1",
-    business_id: "biz_senegal_01",
+    business_id: "00000000-0000-0000-0000-000000000001",
     contact_id: "cnt_1",
     mode: "human",
     last_message_at: new Date(Date.now() - 15 * 60 * 1000).toISOString(),
@@ -284,7 +284,7 @@ export const INITIAL_CONVERSATIONS: Conversation[] = [
   },
   {
     id: "conv_2",
-    business_id: "biz_senegal_01",
+    business_id: "00000000-0000-0000-0000-000000000001",
     contact_id: "cnt_2",
     mode: "ai",
     last_message_at: new Date(Date.now() - 45 * 60 * 1000).toISOString(),
@@ -294,7 +294,7 @@ export const INITIAL_CONVERSATIONS: Conversation[] = [
   },
   {
     id: "conv_3",
-    business_id: "biz_senegal_01",
+    business_id: "00000000-0000-0000-0000-000000000001",
     contact_id: "cnt_3",
     mode: "human",
     last_message_at: new Date(Date.now() - 2 * 3600 * 1000).toISOString(),
@@ -304,7 +304,7 @@ export const INITIAL_CONVERSATIONS: Conversation[] = [
   },
   {
     id: "conv_4",
-    business_id: "biz_senegal_01",
+    business_id: "00000000-0000-0000-0000-000000000001",
     contact_id: "cnt_5",
     mode: "ai",
     last_message_at: new Date(Date.now() - 20 * 60 * 1000).toISOString(),
@@ -314,7 +314,7 @@ export const INITIAL_CONVERSATIONS: Conversation[] = [
   },
   {
     id: "conv_6",
-    business_id: "biz_senegal_01",
+    business_id: "00000000-0000-0000-0000-000000000001",
     contact_id: "cnt_6",
     mode: "ai",
     last_message_at: new Date(Date.now() - 4 * 24 * 3600 * 1000).toISOString(),
@@ -323,7 +323,7 @@ export const INITIAL_CONVERSATIONS: Conversation[] = [
   },
   {
     id: "conv_7",
-    business_id: "biz_senegal_01",
+    business_id: "00000000-0000-0000-0000-000000000001",
     contact_id: "cnt_7",
     mode: "ai",
     last_message_at: new Date(Date.now() - 3 * 24 * 3600 * 1000 - 3 * 3600 * 1000).toISOString(),
@@ -337,7 +337,7 @@ export const INITIAL_MESSAGES: Message[] = [
   {
     id: "m_1",
     conversation_id: "conv_1",
-    business_id: "biz_senegal_01",
+    business_id: "00000000-0000-0000-0000-000000000001",
     direction: "in",
     sender: "contact",
     body: "Salam alaykoum, je cherche une villa avec piscine à louer à Mermoz pour ma famille. Est-ce que vous en avez de disponible ?",
@@ -348,7 +348,7 @@ export const INITIAL_MESSAGES: Message[] = [
   {
     id: "m_2",
     conversation_id: "conv_1",
-    business_id: "biz_senegal_01",
+    business_id: "00000000-0000-0000-0000-000000000001",
     direction: "out",
     sender: "ai",
     body: "Wa Alaykoum Salam M. Diop ! Bienvenue chez Teranga Immo 🌿\n\nOui, nous avons une splendide *Villa R+1 avec Piscine à Mermoz Pyrotechnie* :\n✨ 4 chambres avec salles de bain privatives\n🏊 Piscine et jardin arboré\n💰 1 500 000 FCFA / mois\n\nSouhaitez-vous planifier une visite sur place ?",
@@ -359,7 +359,7 @@ export const INITIAL_MESSAGES: Message[] = [
   {
     id: "m_3",
     conversation_id: "conv_1",
-    business_id: "biz_senegal_01",
+    business_id: "00000000-0000-0000-0000-000000000001",
     direction: "in",
     sender: "contact",
     body: "Parfait ! Est-il possible de visiter ce samedi matin à 11h avec mon épouse ? J'aimerais aussi négocier un peu le montant de la caution.",
@@ -370,7 +370,7 @@ export const INITIAL_MESSAGES: Message[] = [
   {
     id: "m_4",
     conversation_id: "conv_1",
-    business_id: "biz_senegal_01",
+    business_id: "00000000-0000-0000-0000-000000000001",
     direction: "out",
     sender: "agent",
     body: "Bonjour M. Diop, ici Mamadou, responsable des visites chez Teranga Immo. C'est noté pour ce samedi à 11h00 précises ! Je vous envoie la géolocalisation exacte. Concernant la caution, nous pourrons en échanger ensemble lors de la visite.",
@@ -383,7 +383,7 @@ export const INITIAL_MESSAGES: Message[] = [
   {
     id: "m_5",
     conversation_id: "conv_2",
-    business_id: "biz_senegal_01",
+    business_id: "00000000-0000-0000-0000-000000000001",
     direction: "in",
     sender: "contact",
     body: "Bonjour, avez-vous des appartements vers les Almadies avec vue mer et 3 chambres ?",
@@ -394,7 +394,7 @@ export const INITIAL_MESSAGES: Message[] = [
   {
     id: "m_6",
     conversation_id: "conv_2",
-    business_id: "biz_senegal_01",
+    business_id: "00000000-0000-0000-0000-000000000001",
     direction: "out",
     sender: "ai",
     body: "Bonjour Madame ! C'est un réel plaisir de vous renseigner ✨\n\nNous avons précisément l'*Appartement F4 Haut Standing aux Almadies* :\n🌊 Grand balcon avec magnifique vue mer\n🛏️ 3 chambres climatisées autonomes\n⚡ Groupe électrogène et ascenseur 24h/24\n💰 Prix : 850 000 FCFA / mois\n\nQuel est votre délai pour emménager ?",
@@ -405,7 +405,7 @@ export const INITIAL_MESSAGES: Message[] = [
   {
     id: "m_7",
     conversation_id: "conv_2",
-    business_id: "biz_senegal_01",
+    business_id: "00000000-0000-0000-0000-000000000001",
     direction: "in",
     sender: "contact",
     body: "Mon budget est d'environ 800 000 à 850 000 FCFA. Pouvez-vous me dire quels sont les frais d'agence ?",
@@ -418,7 +418,7 @@ export const INITIAL_MESSAGES: Message[] = [
   {
     id: "m_60",
     conversation_id: "conv_6",
-    business_id: "biz_senegal_01",
+    business_id: "00000000-0000-0000-0000-000000000001",
     direction: "in",
     sender: "contact",
     body: "Salam, je cherche une villa avec piscine à Ngor pour un budget de 1.8M max.",
@@ -429,7 +429,7 @@ export const INITIAL_MESSAGES: Message[] = [
   {
     id: "m_61",
     conversation_id: "conv_6",
-    business_id: "biz_senegal_01",
+    business_id: "00000000-0000-0000-0000-000000000001",
     direction: "out",
     sender: "ai",
     body: "Wa Alaykoum Salam M. Fall ! Nous avons deux très belles villas à Ngor correspondant parfaitement à votre recherche de 1.8M FCFA avec piscine. Souhaitez-vous recevoir les fiches complètes ou convenir d'une visite ?",
@@ -442,7 +442,7 @@ export const INITIAL_MESSAGES: Message[] = [
   {
     id: "m_70",
     conversation_id: "conv_7",
-    business_id: "biz_senegal_01",
+    business_id: "00000000-0000-0000-0000-000000000001",
     direction: "in",
     sender: "contact",
     body: "Bonjour, avez-vous des F3 vers Ouakam ou Mamelles à 600 000 FCFA ?",
@@ -453,7 +453,7 @@ export const INITIAL_MESSAGES: Message[] = [
   {
     id: "m_71",
     conversation_id: "conv_7",
-    business_id: "biz_senegal_01",
+    business_id: "00000000-0000-0000-0000-000000000001",
     direction: "out",
     sender: "ai",
     body: "Bonjour Mme Sarr ! Oui, nous avons un très joli F3 refait à neuf aux Mamelles à 600 000 FCFA / mois. Seriez-vous disponible pour une visite cette semaine ?",
@@ -466,7 +466,7 @@ export const INITIAL_MESSAGES: Message[] = [
 export const INITIAL_APPOINTMENTS: Appointment[] = [
   {
     id: "appt_1",
-    business_id: "biz_senegal_01",
+    business_id: "00000000-0000-0000-0000-000000000001",
     contact_id: "cnt_1",
     contact_name: "Ibrahima Diop",
     contact_phone: "+221 77 123 45 67",
@@ -482,7 +482,7 @@ export const INITIAL_APPOINTMENTS: Appointment[] = [
   },
   {
     id: "appt_2",
-    business_id: "biz_senegal_01",
+    business_id: "00000000-0000-0000-0000-000000000001",
     contact_id: "cnt_2",
     contact_name: "Fatou Bintou Ndiaye",
     contact_phone: "+221 78 987 65 43",
@@ -498,7 +498,7 @@ export const INITIAL_APPOINTMENTS: Appointment[] = [
   },
   {
     id: "appt_3",
-    business_id: "biz_senegal_01",
+    business_id: "00000000-0000-0000-0000-000000000001",
     contact_id: "cnt_3",
     contact_name: "Cheikh Tidiane Fall",
     contact_phone: "+221 70 555 44 33",
@@ -517,7 +517,7 @@ export const INITIAL_APPOINTMENTS: Appointment[] = [
 export const INITIAL_QUOTES: Quote[] = [
   {
     id: "quote_1",
-    business_id: "biz_senegal_01",
+    business_id: "00000000-0000-0000-0000-000000000001",
     quote_number: "DEV-2025-001",
     title: "Location F4 Haut Standing Almadies (Bail 1 an)",
     contact_id: "cnt_1",
@@ -568,7 +568,7 @@ export const INITIAL_QUOTES: Quote[] = [
   },
   {
     id: "quote_2",
-    business_id: "biz_senegal_01",
+    business_id: "00000000-0000-0000-0000-000000000001",
     quote_number: "DEV-2025-002",
     title: "Offre Locative - Villa R+1 avec Piscine Mermoz",
     contact_id: "cnt_2",
@@ -618,7 +618,7 @@ export const INITIAL_QUOTES: Quote[] = [
   },
   {
     id: "quote_3",
-    business_id: "biz_senegal_01",
+    business_id: "00000000-0000-0000-0000-000000000001",
     quote_number: "DEV-2025-003",
     title: "Bail Commercial - Plateau de Bureaux 180 m² VDN",
     contact_id: "cnt_3",
@@ -667,7 +667,7 @@ export const INITIAL_QUOTES: Quote[] = [
   },
   {
     id: "quote_4",
-    business_id: "biz_senegal_01",
+    business_id: "00000000-0000-0000-0000-000000000001",
     quote_number: "DEV-2025-004",
     title: "Location Meublée 3 mois - Studio Plateau",
     contact_id: "cnt_4",

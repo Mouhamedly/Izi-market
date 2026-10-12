@@ -40,7 +40,8 @@ export async function middleware(request: NextRequest) {
 
   // Protection des routes de l'application /app
   if (pathname.startsWith("/app")) {
-    if (!user) {
+    const isDemoSession = request.cookies.get("izi_demo_session")?.value === "1" || request.nextUrl.searchParams.get("demo") === "1";
+    if (!user && !isDemoSession) {
       const redirectUrl = request.nextUrl.clone();
       redirectUrl.pathname = "/connexion";
       redirectUrl.searchParams.set("next", pathname);

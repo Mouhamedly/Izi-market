@@ -30,6 +30,22 @@ import { generateFollowUpMessage } from "./followup";
 import { generateQuoteWhatsAppMessage } from "./quotes";
 import { normalizePhoneNumber } from "./importer";
 
+function generateUUID(): string {
+  if (typeof crypto !== "undefined" && typeof crypto.randomUUID === "function") {
+    return crypto.randomUUID();
+  }
+  return "xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx".replace(/[xy]/g, function (c) {
+    const r = (Math.random() * 16) | 0;
+    const v = c === "x" ? r : (r & 0x3) | 0x8;
+    return v.toString(16);
+  });
+}
+
+function isValidUUID(str?: string | null): boolean {
+  if (!str) return false;
+  return /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(str);
+}
+
 interface AppContextType {
   business: Business;
   contacts: Contact[];
@@ -87,39 +103,210 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
   const [selectedConversationId, setSelectedConversationId] = useState<string | null>("conv_1");
   const [isDemoMode, setIsDemoMode] = useState<boolean>(true);
 
-  // Initialisation et détection Supabase ou LocalStorage
+  // Initialisation et chargement des données depuis Supabase ou LocalStorage
   useEffect(() => {
     const configured = isSupabaseConfigured();
     setIsDemoMode(!configured);
 
-    if (typeof window !== "undefined") {
-      const savedBiz = localStorage.getItem("izi_business");
-      if (savedBiz) try { setBusiness(JSON.parse(savedBiz)); } catch {}
+    if (!configured) {
+      if (typeof window !== "undefined") {
+        const savedBiz = localStorage.getItem("izi_business");
+        if (savedBiz) try { setBusiness(JSON.parse(savedBiz)); } catch {}
 
-      const savedContacts = localStorage.getItem("izi_contacts");
-      if (savedContacts) try { setContacts(JSON.parse(savedContacts)); } catch {}
+        const savedContacts = localStorage.getItem("izi_contacts");
+        if (savedContacts) try { setContacts(JSON.parse(savedContacts)); } catch {}
 
-      const savedConvs = localStorage.getItem("izi_conversations");
-      if (savedConvs) try { setConversations(JSON.parse(savedConvs)); } catch {}
+        const savedConvs = localStorage.getItem("izi_conversations");
+        if (savedConvs) try { setConversations(JSON.parse(savedConvs)); } catch {}
 
-      const savedMessages = localStorage.getItem("izi_messages");
-      if (savedMessages) try { setMessages(JSON.parse(savedMessages)); } catch {}
+        const savedMessages = localStorage.getItem("izi_messages");
+        if (savedMessages) try { setMessages(JSON.parse(savedMessages)); } catch {}
 
-      const savedFaqs = localStorage.getItem("izi_faqs");
-      if (savedFaqs) try { setFaqs(JSON.parse(savedFaqs)); } catch {}
+        const savedFaqs = localStorage.getItem("izi_faqs");
+        if (savedFaqs) try { setFaqs(JSON.parse(savedFaqs)); } catch {}
 
-      const savedCatalog = localStorage.getItem("izi_catalog");
-      if (savedCatalog) try { setCatalog(JSON.parse(savedCatalog)); } catch {}
+        const savedCatalog = localStorage.getItem("izi_catalog");
+        if (savedCatalog) try { setCatalog(JSON.parse(savedCatalog)); } catch {}
 
-      const savedAppts = localStorage.getItem("izi_appointments");
-      if (savedAppts) try { setAppointments(JSON.parse(savedAppts)); } catch {}
+        const savedAppts = localStorage.getItem("izi_appointments");
+        if (savedAppts) try { setAppointments(JSON.parse(savedAppts)); } catch {}
 
-      const savedQuotes = localStorage.getItem("izi_quotes");
-      if (savedQuotes) try { setQuotes(JSON.parse(savedQuotes)); } catch {}
+        const savedQuotes = localStorage.getItem("izi_quotes");
+        if (savedQuotes) try { setQuotes(JSON.parse(savedQuotes)); } catch {}
+      }
+      return;
     }
+
+    // Charger directement depuis Supabase
+    async function loadSupabaseData() {
+      try {
+        const supabase = createClient();
+        
+        // 1. Détecter l'utilisateur connecté
+        const { data: { user } } = await supabase.auth.getUser();
+        let targetBizId = business.id;
+
+        if (user) {
+          const { data: member } = await supabase
+            .from("members")
+            .select("business_id")
+            .eq("user_id", user.id)
+            .maybeSingle();
+
+          if (member?.business_id) {
+            targetBizId = member.business_id;
+          }
+        }
+
+        // 2. Charger les infos de l'entreprise
+        const { data: bizData } = await supabase
+          .from("businesses")
+          .select("*")
+          .eq("id", targetBizId)
+          .maybeSingle();
+
+        if (bizData) {
+          setBusiness(bizData);
+          targetBizId = bizData.id;
+        } else {
+          // Fallback sur le business démo par défaut
+          const { data: defaultBiz } = await supabase
+            .from("businesses")
+            .select("*")
+            .limit(1)
+            .maybeSingle();
+
+          if (defaultBiz) {
+            setBusiness(defaultBiz);
+            targetBizId = defaultBiz.id;
+          }
+        }
+
+        // 3. Charger les contacts
+        const { data: dbContacts } = await supabase
+          .from("contacts")
+          .select("*")
+          .eq("business_id", targetBizId)
+          .order("created_at", { ascending: false });
+
+        if (dbContacts && dbContacts.length > 0) {
+          setContacts(dbContacts);
+        }
+
+        // 4. Charger les devis
+        const { data: dbQuotes } = await supabase
+          .from("quotes")
+          .select("*")
+          .eq("business_id", targetBizId)
+          .order("created_at", { ascending: false });
+
+        if (dbQuotes && dbQuotes.length > 0) {
+          setQuotes(dbQuotes);
+        }
+
+        // 5. Charger conversations & messages
+        const { data: dbConvs } = await supabase
+          .from("conversations")
+          .select("*, contact:contacts(*)")
+          .eq("business_id", targetBizId)
+          .order("last_message_at", { ascending: false });
+
+        if (dbConvs && dbConvs.length > 0) {
+          setConversations(dbConvs);
+          setSelectedConversationId(dbConvs[0].id);
+        }
+
+        const { data: dbMessages } = await supabase
+          .from("messages")
+          .select("*")
+          .eq("business_id", targetBizId)
+          .order("created_at", { ascending: true });
+
+        if (dbMessages && dbMessages.length > 0) {
+          setMessages(dbMessages);
+        }
+
+        // 6. Charger FAQs & Catalogue
+        const { data: dbFaqs } = await supabase
+          .from("faqs")
+          .select("*")
+          .eq("business_id", targetBizId);
+
+        if (dbFaqs && dbFaqs.length > 0) {
+          setFaqs(dbFaqs);
+        }
+
+        const { data: dbCatalog } = await supabase
+          .from("catalog_items")
+          .select("*")
+          .eq("business_id", targetBizId);
+
+        if (dbCatalog && dbCatalog.length > 0) {
+          setCatalog(dbCatalog);
+        }
+
+        // 7. Charger Rendez-vous
+        const { data: dbAppts } = await supabase
+          .from("appointments")
+          .select("*")
+          .eq("business_id", targetBizId);
+
+        if (dbAppts && dbAppts.length > 0) {
+          setAppointments(dbAppts);
+        }
+      } catch (err) {
+        console.error("Erreur lors de la synchronisation Supabase:", err);
+      }
+    }
+
+    loadSupabaseData();
+
+    // 8. Écouteurs Supabase Realtime
+    const supabase = createClient();
+    const channel = supabase
+      .channel("supabase-realtime-global")
+      .on(
+        "postgres_changes",
+        { event: "*", schema: "public", table: "contacts" },
+        async () => {
+          const { data } = await supabase
+            .from("contacts")
+            .select("*")
+            .order("created_at", { ascending: false });
+          if (data) setContacts(data);
+        }
+      )
+      .on(
+        "postgres_changes",
+        { event: "*", schema: "public", table: "quotes" },
+        async () => {
+          const { data } = await supabase
+            .from("quotes")
+            .select("*")
+            .order("created_at", { ascending: false });
+          if (data) setQuotes(data);
+        }
+      )
+      .on(
+        "postgres_changes",
+        { event: "*", schema: "public", table: "businesses" },
+        async () => {
+          const { data } = await supabase
+            .from("businesses")
+            .select("*")
+            .eq("id", business.id)
+            .maybeSingle();
+          if (data) setBusiness(data);
+        }
+      )
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(channel);
+    };
   }, []);
 
-  // Sauvegarde synchrone dans localStorage pour persister les démos et tests
+  // Sauvegarde miroir locale
   useEffect(() => {
     if (typeof window !== "undefined") {
       localStorage.setItem("izi_business", JSON.stringify(business));
@@ -161,8 +348,9 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
   const sendManualMessage = useCallback(async (convId: string, text: string) => {
     if (!text.trim()) return;
 
+    const newMsgId = generateUUID();
     const newMsg: Message = {
-      id: "msg_" + Date.now(),
+      id: newMsgId,
       conversation_id: convId,
       business_id: business.id,
       direction: "out",
@@ -195,25 +383,27 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
 
   // Action : Mise à jour statut prospect (Kanban / Table)
   const updateContactStatus = useCallback(async (contactId: string, status: PipelineStatus) => {
+    const nowIso = new Date().toISOString();
     setContacts((prev) =>
-      prev.map((c) => (c.id === contactId ? { ...c, status, updated_at: new Date().toISOString() } : c))
+      prev.map((c) => (c.id === contactId ? { ...c, status, updated_at: nowIso } : c))
     );
 
     if (isSupabaseConfigured()) {
       const supabase = createClient();
       await supabase
         .from("contacts")
-        .update({ status, updated_at: new Date().toISOString() })
+        .update({ status, updated_at: nowIso })
         .eq("id", contactId);
     }
   }, []);
 
   // Action : Mise à jour infos prospect
   const updateContact = useCallback(async (contactId: string, updates: Partial<Contact>) => {
+    const nowIso = new Date().toISOString();
     setContacts((prev) =>
       prev.map((c) =>
         c.id === contactId
-          ? { ...c, ...updates, updated_at: new Date().toISOString() }
+          ? { ...c, ...updates, updated_at: nowIso }
           : c
       )
     );
@@ -222,7 +412,7 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
       const supabase = createClient();
       await supabase
         .from("contacts")
-        .update({ ...updates, updated_at: new Date().toISOString() })
+        .update({ ...updates, updated_at: nowIso })
         .eq("id", contactId);
     }
   }, []);
@@ -233,9 +423,11 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
   ): Promise<Contact> => {
     const nowIso = new Date().toISOString();
     const normalizedPhone = normalizePhoneNumber(newContactData.wa_phone);
+    const newContactId = generateUUID();
+    const convId = generateUUID();
 
     const newContact: Contact = {
-      id: "cnt_" + Date.now() + "_" + Math.random().toString(36).slice(2, 7),
+      id: newContactId,
       business_id: business.id,
       wa_phone: normalizedPhone,
       name: newContactData.name?.trim() || "Prospect Sans Nom",
@@ -252,26 +444,31 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
 
     setContacts((prev) => [newContact, ...prev]);
 
-    // Initialiser une conversation WhatsApp associée si elle n'existe pas
-    setConversations((prev) => {
-      const exists = prev.some((c) => c.contact_id === newContact.id || c.contact?.wa_phone === normalizedPhone);
-      if (exists) return prev;
-      const newConv: Conversation = {
-        id: "conv_" + Date.now(),
+    // Initialiser une conversation WhatsApp associée
+    const newConv: Conversation = {
+      id: convId,
+      business_id: business.id,
+      contact_id: newContact.id,
+      mode: "ai",
+      last_message_at: nowIso,
+      unread_count: 0,
+      created_at: nowIso,
+      contact: newContact
+    };
+    setConversations((prev) => [newConv, ...prev]);
+
+    if (isSupabaseConfigured()) {
+      const supabase = createClient();
+      await supabase.from("contacts").insert(newContact);
+      await supabase.from("conversations").insert({
+        id: convId,
         business_id: business.id,
         contact_id: newContact.id,
         mode: "ai",
         last_message_at: nowIso,
         unread_count: 0,
-        created_at: nowIso,
-        contact: newContact
-      };
-      return [newConv, ...prev];
-    });
-
-    if (isSupabaseConfigured()) {
-      const supabase = createClient();
-      await supabase.from("contacts").insert(newContact);
+        created_at: nowIso
+      });
     }
 
     return newContact;
@@ -289,8 +486,9 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
 
   // FAQ Actions
   const addFaq = useCallback(async (faqData: Omit<FAQ, "id" | "business_id" | "created_at">) => {
+    const newFaqId = generateUUID();
     const newFaq: FAQ = {
-      id: "faq_" + Date.now(),
+      id: newFaqId,
       business_id: business.id,
       question: faqData.question,
       answer: faqData.answer,
@@ -322,8 +520,9 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
 
   // Catalog Actions
   const addCatalogItem = useCallback(async (itemData: Omit<CatalogItem, "id" | "business_id" | "created_at">) => {
+    const newItemId = generateUUID();
     const newItem: CatalogItem = {
-      id: "cat_" + Date.now(),
+      id: newItemId,
       business_id: business.id,
       title: itemData.title,
       price: itemData.price,
@@ -363,19 +562,22 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
 
   // Paramètres Business
   const updateBusinessSettings = useCallback(async (updates: Partial<Business>) => {
-    setBusiness((prev) => ({ ...prev, ...updates, updated_at: new Date().toISOString() }));
+    const nowIso = new Date().toISOString();
+    setBusiness((prev) => ({ ...prev, ...updates, updated_at: nowIso }));
     if (isSupabaseConfigured()) {
       const supabase = createClient();
-      await supabase.from("businesses").update(updates).eq("id", business.id);
+      await supabase.from("businesses").update({ ...updates, updated_at: nowIso }).eq("id", business.id);
     }
   }, [business.id]);
 
   // Actions Rendez-vous Google Agenda
   const addAppointment = useCallback(async (apptData: Omit<Appointment, "id" | "business_id" | "created_at">) => {
+    const newApptId = generateUUID();
     const newAppt: Appointment = {
       ...apptData,
-      id: `appt_${Date.now()}_${Math.random().toString(36).substring(7)}`,
+      id: newApptId,
       business_id: business.id,
+      contact_id: isValidUUID(apptData.contact_id) ? apptData.contact_id : null,
       created_at: new Date().toISOString(),
       updated_at: new Date().toISOString()
     };
@@ -410,12 +612,16 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
 
   // Actions Devis & Offres
   const addQuote = useCallback(async (quoteData: Omit<Quote, "id" | "business_id" | "created_at" | "updated_at">) => {
+    const nowIso = new Date().toISOString();
+    const quoteId = generateUUID();
+
     const newQuote: Quote = {
       ...quoteData,
-      id: `quote_${Date.now()}_${Math.random().toString(36).substring(7)}`,
+      id: quoteId,
       business_id: business.id,
-      created_at: new Date().toISOString(),
-      updated_at: new Date().toISOString()
+      contact_id: isValidUUID(quoteData.contact_id) ? quoteData.contact_id : null,
+      created_at: nowIso,
+      updated_at: nowIso
     };
     setQuotes((prev) => [newQuote, ...prev]);
 
@@ -427,12 +633,17 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
   }, [business.id]);
 
   const updateQuote = useCallback(async (id: string, updates: Partial<Quote>) => {
+    const nowIso = new Date().toISOString();
     setQuotes((prev) =>
-      prev.map((q) => (q.id === id ? { ...q, ...updates, updated_at: new Date().toISOString() } : q))
+      prev.map((q) => (q.id === id ? { ...q, ...updates, updated_at: nowIso } : q))
     );
     if (isSupabaseConfigured()) {
       const supabase = createClient();
-      await supabase.from("quotes").update({ ...updates, updated_at: new Date().toISOString() }).eq("id", id);
+      const sanitizedUpdates = { ...updates, updated_at: nowIso };
+      if ("contact_id" in sanitizedUpdates && !isValidUUID(sanitizedUpdates.contact_id)) {
+        sanitizedUpdates.contact_id = null;
+      }
+      await supabase.from("quotes").update(sanitizedUpdates).eq("id", id);
     }
   }, []);
 
@@ -445,18 +656,19 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
   }, []);
 
   const updateQuoteStatus = useCallback(async (id: string, status: QuoteStatus) => {
+    const nowIso = new Date().toISOString();
     setQuotes((prev) =>
       prev.map((q) => {
         if (q.id === id) {
           const updates: Partial<Quote> = {
             status,
-            updated_at: new Date().toISOString()
+            updated_at: nowIso
           };
           if (status === "accepte" && !q.accepted_at) {
-            updates.accepted_at = new Date().toISOString();
+            updates.accepted_at = nowIso;
           }
           if (status === "envoye" && !q.sent_at) {
-            updates.sent_at = new Date().toISOString();
+            updates.sent_at = nowIso;
           }
           return { ...q, ...updates };
         }
@@ -465,7 +677,10 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
     );
     if (isSupabaseConfigured()) {
       const supabase = createClient();
-      await supabase.from("quotes").update({ status, updated_at: new Date().toISOString() }).eq("id", id);
+      const updates: any = { status, updated_at: nowIso };
+      if (status === "accepte") updates.accepted_at = nowIso;
+      if (status === "envoye") updates.sent_at = nowIso;
+      await supabase.from("quotes").update(updates).eq("id", id);
     }
   }, []);
 
@@ -485,8 +700,9 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
       (c) => c.contact_id === quote.contact_id || c.contact?.wa_phone === quote.contact_phone
     );
     if (conv) {
+      const newMsgId = generateUUID();
       const newMsg: Message = {
-        id: "msg_quote_" + Date.now(),
+        id: newMsgId,
         conversation_id: conv.id,
         business_id: business.id,
         direction: "out",
@@ -497,6 +713,11 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
         created_at: new Date().toISOString()
       };
       setMessages((prev) => [...prev, newMsg]);
+
+      if (isSupabaseConfigured()) {
+        const supabase = createClient();
+        await supabase.from("messages").insert(newMsg);
+      }
     }
 
     return {
@@ -515,7 +736,7 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
     let convId = conv?.id;
 
     if (!conv) {
-      convId = "conv_" + Date.now();
+      convId = generateUUID();
       const newConv: Conversation = {
         id: convId,
         business_id: business.id,
@@ -526,13 +747,19 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
         created_at: new Date().toISOString()
       };
       setConversations((prev) => [newConv, ...prev]);
+
+      if (isSupabaseConfigured()) {
+        const supabase = createClient();
+        await supabase.from("conversations").insert(newConv);
+      }
     }
 
     const messageText = customMessage || generateFollowUpMessage(contact, business);
     const nowIso = new Date().toISOString();
+    const newMsgId = generateUUID();
 
     const newMsg: Message = {
-      id: "msg_followup_" + Date.now(),
+      id: newMsgId,
       conversation_id: convId!,
       business_id: business.id,
       direction: "out",
@@ -602,7 +829,6 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
     let updated = 0;
     const nowIso = new Date().toISOString();
 
-    // Filtre strict : un contact DOIT comporter un numéro de téléphone réel
     const validContacts = newContacts.filter((c) => {
       if (!c.wa_phone) return false;
       const digits = c.wa_phone.replace(/\D/g, "");
@@ -613,7 +839,6 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
       return { imported: 0, updated: 0, total: 0 };
     }
 
-    // Nettoyer d'abord d'éventuels contacts corrompus sans téléphone
     const cleanedPrev = contacts.filter((c) => c.wa_phone && c.wa_phone.replace(/\D/g, "").length >= 7);
     const phoneIndexMap = new Map<string, number>();
     cleanedPrev.forEach((c, idx) => {
@@ -642,7 +867,7 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
         }
       } else {
         const newContact: Contact = {
-          id: "cnt_imp_" + Date.now() + "_" + Math.random().toString(36).slice(2, 6) + "_" + imported,
+          id: generateUUID(),
           business_id: business.id,
           wa_phone: item.wa_phone,
           name: item.name || "Prospect",
@@ -665,14 +890,19 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
     const finalList = [...newlyAdded, ...updatedList];
     setContacts(finalList);
 
+    if (isSupabaseConfigured() && newlyAdded.length > 0) {
+      const supabase = createClient();
+      await supabase.from("contacts").insert(newlyAdded);
+    }
+
     return { imported, updated, total: imported + updated };
   }, [contacts, business.id]);
 
   const importCatalogItems = useCallback(async (
     newItems: Omit<CatalogItem, "id" | "business_id" | "created_at">[]
   ) => {
-    const createdItems: CatalogItem[] = newItems.map((item, idx) => ({
-      id: "cat_imp_" + Date.now() + "_" + idx,
+    const createdItems: CatalogItem[] = newItems.map((item) => ({
+      id: generateUUID(),
       business_id: business.id,
       title: item.title,
       price: item.price,
@@ -684,14 +914,20 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
     }));
 
     setCatalog((prev) => [...createdItems, ...prev]);
+
+    if (isSupabaseConfigured() && createdItems.length > 0) {
+      const supabase = createClient();
+      await supabase.from("catalog_items").insert(createdItems);
+    }
+
     return { imported: createdItems.length };
   }, [business.id]);
 
   const importFaqs = useCallback(async (
     newFaqs: Omit<FAQ, "id" | "business_id" | "created_at">[]
   ) => {
-    const createdFaqs: FAQ[] = newFaqs.map((faq, idx) => ({
-      id: "faq_imp_" + Date.now() + "_" + idx,
+    const createdFaqs: FAQ[] = newFaqs.map((faq) => ({
+      id: generateUUID(),
       business_id: business.id,
       question: faq.question,
       answer: faq.answer,
@@ -699,6 +935,12 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
     }));
 
     setFaqs((prev) => [...createdFaqs, ...prev]);
+
+    if (isSupabaseConfigured() && createdFaqs.length > 0) {
+      const supabase = createClient();
+      await supabase.from("faqs").insert(createdFaqs);
+    }
+
     return { imported: createdFaqs.length };
   }, [business.id]);
 
@@ -749,7 +991,6 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
       const data = await res.json();
 
       if (data.success) {
-        // Mettre à jour le state local avec le nouveau prospect/conversation/messages
         if (data.contact) {
           const nowIso = new Date().toISOString();
           setContacts((prev) => {
@@ -787,7 +1028,6 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
         }
 
         if (data.replyMessage) {
-          // Délais subtil pour le réalisme de la bulle IA
           setTimeout(() => {
             setMessages((prev) => [...prev, data.replyMessage]);
           }, 400);

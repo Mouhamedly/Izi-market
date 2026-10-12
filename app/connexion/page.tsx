@@ -85,6 +85,9 @@ export default function LoginPage() {
   };
 
   const handleDemoAccess = () => {
+    if (typeof document !== "undefined") {
+      document.cookie = "izi_demo_session=1; path=/; max-age=86400";
+    }
     router.push("/app");
   };
 
