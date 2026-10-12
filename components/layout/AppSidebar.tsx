@@ -16,7 +16,8 @@ import {
   Database,
   FileText,
   Package,
-  X
+  X,
+  Compass
 } from "lucide-react";
 
 interface AppSidebarProps {
@@ -79,6 +80,13 @@ export function AppSidebar({ mobileOpen = false, onMobileClose }: AppSidebarProp
       href: "/app/prospects",
       icon: Users,
       active: pathname.startsWith("/app/prospects"),
+    },
+    {
+      label: "Prospection Maps",
+      href: "/app/prospection",
+      icon: Compass,
+      active: pathname.startsWith("/app/prospection"),
+      badge: "Apify",
     },
     {
       label: "Catalogue Produits",

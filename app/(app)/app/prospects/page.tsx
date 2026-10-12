@@ -18,7 +18,8 @@ import {
   X,
   UploadCloud,
   Plus,
-  UserPlus
+  UserPlus,
+  Compass
 } from "lucide-react";
 import { PipelineStatus, Contact } from "@/types/database";
 import {
@@ -183,6 +184,14 @@ export default function ProspectsPage() {
             <UserPlus className="h-4 w-4" />
             <span>+ Nouveau Contact</span>
           </button>
+
+          <Link
+            href="/app/prospection"
+            className="inline-flex items-center gap-1.5 px-3 sm:px-3.5 py-2 rounded-xl text-xs font-bold bg-gradient-to-r from-emerald-600/10 to-teal-600/10 hover:from-emerald-600/20 hover:to-teal-600/20 border border-emerald-500/30 text-emerald-700 dark:text-emerald-400 shadow-xs transition-colors"
+          >
+            <Compass className="h-3.5 w-3.5 text-emerald-600 dark:text-emerald-400" />
+            <span>Scraper Maps</span>
+          </Link>
 
           <Link
             href="/app/import"

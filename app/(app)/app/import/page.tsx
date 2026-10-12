@@ -15,8 +15,11 @@ import {
   AlertTriangle,
   ArrowRight,
   RefreshCw,
-  Table
+  Table,
+  MapPin,
+  Compass
 } from "lucide-react";
+import { GoogleMapsScraper } from "@/components/leads/GoogleMapsScraper";
 import {
   parseDelimitedText,
   mapRowsToContacts,
@@ -27,7 +30,7 @@ import {
   normalizePhoneNumber
 } from "@/lib/importer";
 
-type ImportTab = "contacts" | "catalog" | "faq" | "database";
+type ImportTab = "contacts" | "catalog" | "faq" | "database" | "google-maps";
 
 export default function ImportDatabasePage() {
   const {
@@ -350,8 +353,34 @@ export default function ImportDatabasePage() {
             </span>
           </div>
         </button>
+
+        <button
+          onClick={() => handleTabChange("google-maps")}
+          className={`flex items-center gap-2.5 p-3.5 rounded-2xl text-xs font-bold transition-all text-left border col-span-2 md:col-span-1 ${
+            activeTab === "google-maps"
+              ? "bg-emerald-600 text-white border-emerald-600 shadow-md shadow-emerald-600/20"
+              : "bg-white dark:bg-slate-900 text-slate-700 dark:text-slate-300 border-slate-200 dark:border-slate-800 hover:bg-slate-50 dark:hover:bg-slate-800"
+          }`}
+        >
+          <Compass className="h-4 w-4 shrink-0 text-amber-400" />
+          <div>
+            <div className="flex items-center gap-1.5">
+              <span className="block">Google Maps</span>
+              <span className="text-[9px] px-1.5 py-0.5 rounded-md bg-amber-400 text-slate-950 font-black">
+                APIFY
+              </span>
+            </div>
+            <span className={`text-[10px] block font-normal ${activeTab === "google-maps" ? "text-emerald-100" : "text-slate-400"}`}>
+              Scraping B2B direct
+            </span>
+          </div>
+        </button>
       </div>
 
+      {activeTab === "google-maps" ? (
+        <GoogleMapsScraper />
+      ) : (
+        <>
       {/* Résultat d'importation réussi */}
       {importResult && (
         <div
@@ -824,6 +853,8 @@ export default function ImportDatabasePage() {
             </button>
           </div>
         </div>
+      )}
+        </>
       )}
 
     </div>
