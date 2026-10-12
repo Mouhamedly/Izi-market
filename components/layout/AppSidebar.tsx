@@ -28,12 +28,29 @@ export function AppSidebar({ mobileOpen = false, onMobileClose }: AppSidebarProp
   const pathname = usePathname();
   const { business, conversations, appointments, quotes, catalog } = useApp();
 
-  // Fermer le drawer mobile lors d'un changement de route
+  const prevPathnameRef = React.useRef(pathname);
+
+  // Fermer le drawer mobile UNIQUEMENT lors d'un vrai changement d'URL
   useEffect(() => {
-    if (mobileOpen && onMobileClose) {
-      onMobileClose();
+    if (prevPathnameRef.current !== pathname) {
+      prevPathnameRef.current = pathname;
+      if (mobileOpen && onMobileClose) {
+        onMobileClose();
+      }
     }
   }, [pathname, mobileOpen, onMobileClose]);
+
+  // Bloquer le défilement de l'arrière-plan quand le drawer est ouvert
+  useEffect(() => {
+    if (mobileOpen) {
+      document.body.style.overflow = "hidden";
+    } else {
+      document.body.style.overflow = "";
+    }
+    return () => {
+      document.body.style.overflow = "";
+    };
+  }, [mobileOpen]);
 
   const unreadTotal = conversations.reduce((acc, c) => acc + (c.unread_count || 0), 0);
   const upcomingApptsTotal = appointments.filter(
