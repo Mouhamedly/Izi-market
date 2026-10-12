@@ -11,7 +11,8 @@ import {
   Sparkles,
   CheckCheck,
   ExternalLink,
-  Smartphone
+  Smartphone,
+  ArrowLeft
 } from "lucide-react";
 import { formatDate } from "@/lib/utils";
 import { WhatsAppSimulatorModal } from "@/components/simulator/WhatsAppSimulatorModal";
@@ -31,6 +32,9 @@ export default function InboxPage() {
   const [searchQuery, setSearchQuery] = useState("");
   const [inputText, setInputText] = useState("");
   const [isSimulatorOpen, setIsSimulatorOpen] = useState(false);
+
+  // État mobile : savoir si on est dans la vue discussion ou la liste
+  const [isMobileChatActive, setIsMobileChatActive] = useState<boolean>(false);
 
   // Filtrage des conversations
   const filteredConversations = conversations.filter((c) => {
@@ -53,6 +57,15 @@ export default function InboxPage() {
     ? messages.filter((m) => m.conversation_id === activeConversation.id)
     : [];
 
+  const handleSelectConversation = (id: string) => {
+    setSelectedConversationId(id);
+    setIsMobileChatActive(true);
+  };
+
+  const handleBackToList = () => {
+    setIsMobileChatActive(false);
+  };
+
   const handleSend = () => {
     if (!inputText.trim() || !activeConversation) return;
     sendManualMessage(activeConversation.id, inputText.trim());
@@ -69,12 +82,17 @@ export default function InboxPage() {
     <div className="h-[calc(100vh-4rem)] flex overflow-hidden">
       
       {/* Colonne Gauche : Liste des Conversations */}
-      <div className="w-80 md:w-96 bg-white dark:bg-slate-900 border-r border-slate-200 dark:border-slate-800 flex flex-col shrink-0">
+      {/* Sur mobile : affichée si isMobileChatActive est false. Sur md+: toujours affichée */}
+      <div
+        className={`${
+          isMobileChatActive ? "hidden md:flex" : "flex"
+        } w-full md:w-80 lg:w-96 bg-white dark:bg-slate-900 border-r border-slate-200 dark:border-slate-800 flex-col shrink-0`}
+      >
         
         {/* Header Inbox */}
-        <div className="p-4 border-b border-slate-200 dark:border-slate-800 space-y-3">
+        <div className="p-3.5 sm:p-4 border-b border-slate-200 dark:border-slate-800 space-y-3">
           <div className="flex items-center justify-between">
-            <h1 className="text-base font-bold text-slate-900 dark:text-white flex items-center gap-2">
+            <h1 className="text-sm sm:text-base font-bold text-slate-900 dark:text-white flex items-center gap-2">
               Messages WhatsApp
               <span className="text-xs px-2 py-0.5 rounded-full bg-emerald-100 text-emerald-700 dark:bg-emerald-950 dark:text-emerald-400 font-bold">
                 {conversations.length}
@@ -83,7 +101,7 @@ export default function InboxPage() {
 
             <button
               onClick={() => setIsSimulatorOpen(true)}
-              className="p-1.5 rounded-lg bg-emerald-50 dark:bg-emerald-950/40 hover:bg-emerald-100 text-emerald-600 dark:text-emerald-400 text-xs font-semibold flex items-center gap-1 transition-colors"
+              className="p-1.5 rounded-lg bg-emerald-50 dark:bg-emerald-950/40 hover:bg-emerald-100 text-emerald-600 dark:text-emerald-400 text-xs font-semibold flex items-center gap-1 transition-colors cursor-pointer"
               title="Tester un message entrant"
             >
               <Smartphone className="h-3.5 w-3.5" />
@@ -104,10 +122,10 @@ export default function InboxPage() {
           </div>
 
           {/* Filtres rapides */}
-          <div className="flex items-center gap-1.5 overflow-x-auto pb-1 text-xs">
+          <div className="flex items-center gap-1.5 overflow-x-auto no-scrollbar pb-1 text-xs">
             <button
               onClick={() => setFilterMode("all")}
-              className={`px-2.5 py-1 rounded-lg font-semibold transition-colors ${
+              className={`px-2.5 py-1 rounded-lg font-semibold transition-colors shrink-0 ${
                 filterMode === "all"
                   ? "bg-slate-900 dark:bg-white text-white dark:text-slate-900"
                   : "bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-400 hover:bg-slate-200"
@@ -117,7 +135,7 @@ export default function InboxPage() {
             </button>
             <button
               onClick={() => setFilterMode("ai")}
-              className={`px-2.5 py-1 rounded-lg font-semibold transition-colors flex items-center gap-1 ${
+              className={`px-2.5 py-1 rounded-lg font-semibold transition-colors flex items-center gap-1 shrink-0 ${
                 filterMode === "ai"
                   ? "bg-emerald-600 text-white"
                   : "bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-400 hover:bg-slate-200"
@@ -127,7 +145,7 @@ export default function InboxPage() {
             </button>
             <button
               onClick={() => setFilterMode("human")}
-              className={`px-2.5 py-1 rounded-lg font-semibold transition-colors flex items-center gap-1 ${
+              className={`px-2.5 py-1 rounded-lg font-semibold transition-colors flex items-center gap-1 shrink-0 ${
                 filterMode === "human"
                   ? "bg-blue-600 text-white"
                   : "bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-400 hover:bg-slate-200"
@@ -137,7 +155,7 @@ export default function InboxPage() {
             </button>
             <button
               onClick={() => setFilterMode("unread")}
-              className={`px-2.5 py-1 rounded-lg font-semibold transition-colors ${
+              className={`px-2.5 py-1 rounded-lg font-semibold transition-colors shrink-0 ${
                 filterMode === "unread"
                   ? "bg-amber-600 text-white"
                   : "bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-400 hover:bg-slate-200"
@@ -165,7 +183,7 @@ export default function InboxPage() {
               return (
                 <div
                   key={conv.id}
-                  onClick={() => setSelectedConversationId(conv.id)}
+                  onClick={() => handleSelectConversation(conv.id)}
                   className={`p-3.5 cursor-pointer transition-all ${
                     isSelected
                       ? "bg-emerald-50/80 dark:bg-emerald-950/20 border-l-4 border-emerald-600"
@@ -233,38 +251,53 @@ export default function InboxPage() {
       </div>
 
       {/* Colonne Droite : Fil de Conversation WhatsApp & Contrôles */}
+      {/* Sur mobile : affichée uniquement si isMobileChatActive est true. Sur md+: toujours affichée */}
       {activeConversation && activeContact ? (
-        <div className="flex-1 flex flex-col bg-[#efeae2] dark:bg-[#0b141a] overflow-hidden">
+        <div
+          className={`${
+            isMobileChatActive ? "flex" : "hidden md:flex"
+          } flex-1 flex-col bg-[#efeae2] dark:bg-[#0b141a] overflow-hidden w-full`}
+        >
           
           {/* Header de la conversation active */}
-          <div className="h-16 bg-white dark:bg-[#1f2c34] border-b border-slate-200 dark:border-[#2a3942] px-6 flex items-center justify-between shrink-0 shadow-sm z-10">
-            <div className="flex items-center gap-3">
-              <div className="h-10 w-10 rounded-full bg-emerald-600 text-white font-bold flex items-center justify-center text-sm shadow-sm">
+          <div className="h-16 bg-white dark:bg-[#1f2c34] border-b border-slate-200 dark:border-[#2a3942] px-3 sm:px-6 flex items-center justify-between shrink-0 shadow-sm z-10">
+            <div className="flex items-center gap-2 sm:gap-3 min-w-0">
+              
+              {/* Bouton Retour pour mobile */}
+              <button
+                onClick={handleBackToList}
+                className="md:hidden p-1.5 rounded-lg text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors shrink-0"
+                aria-label="Retour à la liste"
+              >
+                <ArrowLeft className="h-5 w-5" />
+              </button>
+
+              <div className="h-9 w-9 sm:h-10 sm:w-10 rounded-full bg-emerald-600 text-white font-bold flex items-center justify-center text-xs sm:text-sm shadow-sm shrink-0">
                 {activeContact.name ? activeContact.name.slice(0, 2).toUpperCase() : "WA"}
               </div>
-              <div>
+              <div className="min-w-0">
                 <div className="flex items-center gap-2">
-                  <h2 className="text-sm font-bold text-slate-900 dark:text-[#e9edef]">
+                  <h2 className="text-xs sm:text-sm font-bold text-slate-900 dark:text-[#e9edef] truncate">
                     {activeContact.name || "Prospect WhatsApp"}
                   </h2>
                   <Link
                     href={`/app/prospects/${activeContact.id}`}
-                    className="text-[11px] font-semibold text-emerald-600 hover:underline flex items-center gap-0.5"
+                    className="hidden sm:flex text-[11px] font-semibold text-emerald-600 hover:underline items-center gap-0.5 shrink-0"
                   >
                     Fiche CRM <ExternalLink className="h-3 w-3" />
                   </Link>
                 </div>
-                <p className="text-xs text-slate-500 dark:text-[#8696a0]">
-                  {activeContact.wa_phone} • Statut : <span className="font-semibold text-emerald-600 uppercase text-[10px]">{activeContact.status}</span>
+                <p className="text-[11px] text-slate-500 dark:text-[#8696a0] truncate">
+                  {activeContact.wa_phone} • <span className="font-semibold text-emerald-600 uppercase text-[9px]">{activeContact.status}</span>
                 </p>
               </div>
             </div>
 
             {/* Boutons d'Action : Handoff / Mode IA */}
-            <div className="flex items-center gap-3">
+            <div className="flex items-center gap-1.5 sm:gap-3 shrink-0">
               <button
                 onClick={() => toggleConversationMode(activeConversation.id)}
-                className={`flex items-center gap-2 px-3.5 py-1.5 rounded-xl text-xs font-bold border transition-all ${
+                className={`flex items-center gap-1 sm:gap-2 px-2.5 sm:px-3.5 py-1.5 rounded-xl text-[11px] sm:text-xs font-bold border transition-all cursor-pointer ${
                   activeConversation.mode === "ai"
                     ? "bg-blue-50 dark:bg-blue-950/40 text-blue-700 dark:text-blue-300 border-blue-200 dark:border-blue-800 hover:bg-blue-100"
                     : "bg-emerald-50 dark:bg-emerald-950/40 text-emerald-700 dark:text-emerald-300 border-emerald-200 dark:border-emerald-800 hover:bg-emerald-100"
@@ -273,12 +306,14 @@ export default function InboxPage() {
                 {activeConversation.mode === "ai" ? (
                   <>
                     <User className="h-3.5 w-3.5" />
-                    <span>Reprendre la main (Humain)</span>
+                    <span className="hidden sm:inline">Reprendre la main (Humain)</span>
+                    <span className="sm:hidden">Humain</span>
                   </>
                 ) : (
                   <>
                     <Sparkles className="h-3.5 w-3.5 text-emerald-600" />
-                    <span>Rendre à l'IA</span>
+                    <span className="hidden sm:inline">Rendre à l'IA</span>
+                    <span className="sm:hidden">Mode IA</span>
                   </>
                 )}
               </button>
@@ -286,9 +321,9 @@ export default function InboxPage() {
           </div>
 
           {/* Zone Défilante des Messages (WhatsApp Theme) */}
-          <div className="flex-1 overflow-y-auto p-4 md:p-6 space-y-3 wa-chat-bg">
+          <div className="flex-1 overflow-y-auto p-3 sm:p-4 md:p-6 space-y-3 wa-chat-bg">
             <div className="text-center my-2">
-              <span className="text-[11px] bg-white/80 dark:bg-[#182229]/80 text-slate-500 dark:text-[#8696a0] px-3 py-1 rounded-full shadow-xs">
+              <span className="text-[10px] sm:text-[11px] bg-white/80 dark:bg-[#182229]/80 text-slate-500 dark:text-[#8696a0] px-3 py-1 rounded-full shadow-xs">
                 Début de la conversation WhatsApp
               </span>
             </div>
@@ -302,7 +337,7 @@ export default function InboxPage() {
                   className={`flex ${isOut ? "justify-end" : "justify-start"}`}
                 >
                   <div
-                    className={`max-w-[78%] rounded-2xl px-4 py-2.5 text-xs shadow-sm relative leading-relaxed ${
+                    className={`max-w-[85%] sm:max-w-[78%] rounded-2xl px-3.5 sm:px-4 py-2 sm:py-2.5 text-xs shadow-sm relative leading-relaxed ${
                       isOut
                         ? msg.sender === "ai"
                           ? "bg-[#005c4b] text-white rounded-tr-xs"
@@ -342,23 +377,23 @@ export default function InboxPage() {
           </div>
 
           {/* Input d'envoi de message */}
-          <div className="bg-white dark:bg-[#1f2c34] p-3 md:p-4 border-t border-slate-200 dark:border-[#2a3942] flex items-center gap-3">
+          <div className="bg-white dark:bg-[#1f2c34] p-2.5 sm:p-4 border-t border-slate-200 dark:border-[#2a3942] flex items-center gap-2 sm:gap-3">
             <input
               type="text"
               placeholder={
                 activeConversation.mode === "ai"
-                  ? "L'IA répond automatiquement. Tapez ici pour envoyer un message manuel et reprendre la main..."
-                  : "Tapez votre message à envoyer sur WhatsApp..."
+                  ? "Tapez un message pour reprendre la main..."
+                  : "Tapez votre message WhatsApp..."
               }
               value={inputText}
               onChange={(e) => setInputText(e.target.value)}
               onKeyDown={handleKeyDown}
-              className="flex-1 bg-slate-100 dark:bg-[#2a3942] text-xs text-slate-900 dark:text-[#e9edef] placeholder-slate-400 dark:placeholder-[#8696a0] rounded-full px-4 py-2.5 focus:outline-none focus:ring-2 focus:ring-emerald-500"
+              className="flex-1 bg-slate-100 dark:bg-[#2a3942] text-xs text-slate-900 dark:text-[#e9edef] placeholder-slate-400 dark:placeholder-[#8696a0] rounded-full px-3.5 sm:px-4 py-2 sm:py-2.5 focus:outline-none focus:ring-2 focus:ring-emerald-500"
             />
             <button
               onClick={handleSend}
               disabled={!inputText.trim()}
-              className="h-9 w-9 rounded-full bg-emerald-600 hover:bg-emerald-500 disabled:opacity-40 text-white flex items-center justify-center transition-colors shrink-0 shadow-sm"
+              className="h-9 w-9 rounded-full bg-emerald-600 hover:bg-emerald-500 disabled:opacity-40 text-white flex items-center justify-center transition-colors shrink-0 shadow-sm cursor-pointer"
               title="Envoyer via WhatsApp"
             >
               <Send className="h-4 w-4" />
@@ -367,7 +402,7 @@ export default function InboxPage() {
 
         </div>
       ) : (
-        <div className="flex-1 flex flex-col items-center justify-center p-8 text-center text-slate-400">
+        <div className="hidden md:flex flex-1 flex-col items-center justify-center p-8 text-center text-slate-400">
           <Bot className="h-12 w-12 text-slate-300 dark:text-slate-700 mb-3" />
           <p className="text-sm font-semibold">Sélectionnez une conversation</p>
           <p className="text-xs mt-1">ou lancez une simulation pour tester l'IA en temps réel.</p>

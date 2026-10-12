@@ -59,6 +59,20 @@ body {
   background: rgba(140, 160, 175, 0.5);
 }
 
+/* Hide scrollbar for smooth mobile horizontal swipes */
+.no-scrollbar::-webkit-scrollbar {
+  display: none;
+}
+.no-scrollbar {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
+
+/* Safe area for modern iOS & Android devices */
+.safe-area-pb {
+  padding-bottom: max(0.5rem, env(safe-area-inset-bottom, 0.5rem));
+}
+
 /* WhatsApp chat background pattern */
 .wa-chat-bg {
   background-color: #efeae2;

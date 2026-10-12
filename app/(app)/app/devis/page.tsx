@@ -161,7 +161,7 @@ export default function QuotesPage() {
   };
 
   return (
-    <div className="p-6 md:p-8 space-y-8 max-w-7xl mx-auto">
+    <div className="p-3.5 sm:p-6 md:p-8 space-y-5 sm:space-y-8 max-w-7xl mx-auto">
       
       {/* Top Banner / Notification */}
       {notification && (
@@ -177,7 +177,7 @@ export default function QuotesPage() {
           <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 text-xs font-bold border border-emerald-500/20 mb-2">
             <FileText className="h-3.5 w-3.5" /> Devis, Offres & Factures Proformas
           </div>
-          <h1 className="text-2xl font-extrabold text-slate-900 dark:text-white tracking-tight flex items-center gap-2.5">
+          <h1 className="text-xl sm:text-2xl font-extrabold text-slate-900 dark:text-white tracking-tight flex items-center gap-2.5">
             Devis & Offres Commerciales
           </h1>
           <p className="text-xs text-slate-500 mt-1">
@@ -188,7 +188,7 @@ export default function QuotesPage() {
         <div className="flex items-center gap-3">
           <button
             onClick={handleNewQuote}
-            className="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl text-xs font-bold bg-emerald-600 hover:bg-emerald-500 text-white shadow-lg shadow-emerald-600/25 transition-all cursor-pointer"
+            className="inline-flex items-center gap-2 px-4 sm:px-5 py-2.5 rounded-xl text-xs font-bold bg-emerald-600 hover:bg-emerald-500 text-white shadow-lg shadow-emerald-600/25 transition-all cursor-pointer"
           >
             <Plus className="h-4 w-4" />
             <span>Nouveau Devis</span>
@@ -196,8 +196,8 @@ export default function QuotesPage() {
         </div>
       </div>
 
-      {/* KPI Cards Grid */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+      {/* KPI Cards Grid (2 colonnes sur mobile, 4 sur desktop) */}
+      <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
         {/* KPI 1 : Total proposé */}
         <div className="p-5 rounded-3xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 shadow-sm space-y-2">
           <div className="flex items-center justify-between text-xs text-slate-500">
@@ -272,7 +272,7 @@ export default function QuotesPage() {
         </div>
 
         {/* Filtres par statut */}
-        <div className="flex items-center gap-1.5 overflow-x-auto pb-1 sm:pb-0">
+        <div className="flex items-center gap-1.5 overflow-x-auto no-scrollbar pb-1 sm:pb-0">
           {[
             { id: "tous", label: "Tous", count: quotes.length },
             { id: "envoye", label: "Envoyés", count: quotes.filter((q) => q.status === "envoye").length },

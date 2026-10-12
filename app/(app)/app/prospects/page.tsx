@@ -52,6 +52,7 @@ export default function ProspectsPage() {
   const [viewMode, setViewMode] = useState<"kanban" | "list">("kanban");
   const [searchQuery, setSearchQuery] = useState("");
   const [filterOnlyInactive, setFilterOnlyInactive] = useState(false);
+  const [mobileColumnFilter, setMobileColumnFilter] = useState<PipelineStatus | "all">("all");
 
   // État de modal d'ajout de contact
   const [isAddContactOpen, setIsAddContactOpen] = useState(false);
@@ -147,7 +148,7 @@ export default function ProspectsPage() {
   };
 
   return (
-    <div className="p-6 md:p-8 space-y-6 max-w-7xl mx-auto">
+    <div className="p-3.5 sm:p-6 md:p-8 space-y-5 sm:space-y-6 max-w-7xl mx-auto">
       
       {/* Toast Feedback */}
       {followupFeedback && (
@@ -160,7 +161,7 @@ export default function ProspectsPage() {
       {/* Top Header */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
-          <h1 className="text-2xl font-extrabold text-slate-900 dark:text-white tracking-tight flex items-center gap-2.5">
+          <h1 className="text-xl sm:text-2xl font-extrabold text-slate-900 dark:text-white tracking-tight flex items-center gap-2.5">
             Prospects & Pipeline Commercial
             <span className="text-xs px-2.5 py-0.5 rounded-full bg-emerald-100 text-emerald-800 dark:bg-emerald-950 dark:text-emerald-300 font-bold">
               {contacts.length} prospects
@@ -171,13 +172,13 @@ export default function ProspectsPage() {
           </p>
         </div>
 
-        <div className="flex items-center gap-3">
+        <div className="flex flex-wrap items-center gap-2 sm:gap-3">
           <button
             onClick={() => {
               setAddContactDefaultStatus("nouveau");
               setIsAddContactOpen(true);
             }}
-            className="inline-flex items-center gap-1.5 px-4 py-2 rounded-xl text-xs font-bold bg-emerald-600 hover:bg-emerald-500 text-white shadow-md shadow-emerald-600/25 transition-all cursor-pointer"
+            className="inline-flex items-center gap-1.5 px-3.5 sm:px-4 py-2 rounded-xl text-xs font-bold bg-emerald-600 hover:bg-emerald-500 text-white shadow-md shadow-emerald-600/25 transition-all cursor-pointer"
           >
             <UserPlus className="h-4 w-4" />
             <span>+ Nouveau Contact</span>
@@ -185,17 +186,17 @@ export default function ProspectsPage() {
 
           <Link
             href="/app/import"
-            className="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-xl text-xs font-bold bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 text-slate-700 dark:text-slate-300 hover:text-emerald-600 hover:border-emerald-500/50 shadow-xs transition-colors"
+            className="inline-flex items-center gap-1.5 px-3 sm:px-3.5 py-2 rounded-xl text-xs font-bold bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 text-slate-700 dark:text-slate-300 hover:text-emerald-600 hover:border-emerald-500/50 shadow-xs transition-colors"
           >
             <UploadCloud className="h-3.5 w-3.5 text-emerald-600" />
-            <span>Importer (CSV / Excel)</span>
+            <span>Importer (CSV)</span>
           </Link>
 
           {/* Toggle Kanban / Liste */}
           <div className="flex items-center p-1 rounded-xl bg-slate-200/80 dark:bg-slate-800 border border-slate-300 dark:border-slate-700 text-xs">
             <button
               onClick={() => setViewMode("kanban")}
-              className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg font-bold transition-all ${
+              className={`flex items-center gap-1 px-2.5 sm:px-3 py-1.5 rounded-lg font-bold transition-all cursor-pointer ${
                 viewMode === "kanban"
                   ? "bg-white dark:bg-slate-900 text-slate-900 dark:text-white shadow-xs"
                   : "text-slate-600 dark:text-slate-400"
@@ -206,7 +207,7 @@ export default function ProspectsPage() {
             </button>
             <button
               onClick={() => setViewMode("list")}
-              className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg font-bold transition-all ${
+              className={`flex items-center gap-1 px-2.5 sm:px-3 py-1.5 rounded-lg font-bold transition-all cursor-pointer ${
                 viewMode === "list"
                   ? "bg-white dark:bg-slate-900 text-slate-900 dark:text-white shadow-xs"
                   : "text-slate-600 dark:text-slate-400"
@@ -299,9 +300,43 @@ export default function ProspectsPage() {
 
       {/* VUE 1 : KANBAN */}
       {viewMode === "kanban" && (
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-6 gap-4 overflow-x-auto pb-4">
-          {PIPELINE_COLUMNS.map((col) => {
-            const columnContacts = filteredContacts.filter((c) => c.status === col.id);
+        <div className="space-y-4">
+          
+          {/* Sélecteur d'étape sur mobile */}
+          <div className="md:hidden flex items-center gap-1.5 overflow-x-auto no-scrollbar pb-1">
+            <button
+              onClick={() => setMobileColumnFilter("all")}
+              className={`px-3 py-1.5 rounded-xl text-xs font-bold shrink-0 transition-colors cursor-pointer ${
+                mobileColumnFilter === "all"
+                  ? "bg-slate-900 text-white dark:bg-white dark:text-slate-900 shadow-xs"
+                  : "bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300"
+              }`}
+            >
+              Toutes les étapes ({filteredContacts.length})
+            </button>
+            {PIPELINE_COLUMNS.map((col) => {
+              const count = filteredContacts.filter((c) => c.status === col.id).length;
+              return (
+                <button
+                  key={col.id}
+                  onClick={() => setMobileColumnFilter(col.id)}
+                  className={`px-3 py-1.5 rounded-xl text-xs font-bold shrink-0 transition-colors cursor-pointer ${
+                    mobileColumnFilter === col.id
+                      ? "bg-emerald-600 text-white shadow-xs"
+                      : "bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300"
+                  }`}
+                >
+                  {col.label} ({count})
+                </button>
+              );
+            })}
+          </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-6 gap-4 overflow-x-auto pb-4">
+            {PIPELINE_COLUMNS
+              .filter((col) => mobileColumnFilter === "all" || col.id === mobileColumnFilter)
+              .map((col) => {
+                const columnContacts = filteredContacts.filter((c) => c.status === col.id);
 
             return (
               <div
@@ -443,6 +478,7 @@ export default function ProspectsPage() {
               </div>
             );
           })}
+          </div>
         </div>
       )}
 

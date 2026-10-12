@@ -1,6 +1,6 @@
 "use client";
 
-import React from "react";
+import React, { useEffect } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useApp } from "@/lib/store";
@@ -15,12 +15,25 @@ import {
   Zap,
   Database,
   FileText,
-  Package
+  Package,
+  X
 } from "lucide-react";
 
-export function AppSidebar() {
+interface AppSidebarProps {
+  mobileOpen?: boolean;
+  onMobileClose?: () => void;
+}
+
+export function AppSidebar({ mobileOpen = false, onMobileClose }: AppSidebarProps) {
   const pathname = usePathname();
   const { business, conversations, appointments, quotes, catalog } = useApp();
+
+  // Fermer le drawer mobile lors d'un changement de route
+  useEffect(() => {
+    if (mobileOpen && onMobileClose) {
+      onMobileClose();
+    }
+  }, [pathname, mobileOpen, onMobileClose]);
 
   const unreadTotal = conversations.reduce((acc, c) => acc + (c.unread_count || 0), 0);
   const upcomingApptsTotal = appointments.filter(
@@ -91,11 +104,11 @@ export function AppSidebar() {
     },
   ];
 
-  return (
-    <aside className="w-64 bg-white dark:bg-slate-900 border-r border-slate-200 dark:border-slate-800 flex flex-col justify-between shrink-0 select-none">
+  const sidebarContent = (isMobile = false) => (
+    <div className="flex flex-col h-full justify-between select-none overflow-y-auto">
       <div>
         {/* Brand Header */}
-        <div className="h-16 flex items-center px-6 border-b border-slate-100 dark:border-slate-800/80">
+        <div className="h-16 flex items-center justify-between px-5 sm:px-6 border-b border-slate-100 dark:border-slate-800/80">
           <Link href="/app" className="flex items-center gap-2.5">
             <div className="h-9 w-9 rounded-xl bg-gradient-to-tr from-emerald-600 to-teal-500 flex items-center justify-center text-white shadow-md shadow-emerald-500/20">
               <Sparkles className="h-5 w-5" />
@@ -109,12 +122,22 @@ export function AppSidebar() {
               </span>
             </div>
           </Link>
+
+          {isMobile && onMobileClose && (
+            <button
+              onClick={onMobileClose}
+              className="p-2 rounded-xl text-slate-500 hover:text-slate-900 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors cursor-pointer"
+              aria-label="Fermer le menu"
+            >
+              <X className="h-5 w-5" />
+            </button>
+          )}
         </div>
 
         {/* Business Selector / Info */}
         <div className="px-4 py-3 mx-3 my-3 rounded-xl bg-slate-50 dark:bg-slate-800/50 border border-slate-200/80 dark:border-slate-800">
           <div className="flex items-center gap-2.5">
-            <div className="h-8 w-8 rounded-lg bg-emerald-500 text-white font-bold flex items-center justify-center text-xs shadow-sm">
+            <div className="h-8 w-8 rounded-lg bg-emerald-500 text-white font-bold flex items-center justify-center text-xs shadow-sm shrink-0">
               {business.name.slice(0, 2).toUpperCase()}
             </div>
             <div className="flex-1 min-w-0">
@@ -136,6 +159,9 @@ export function AppSidebar() {
               <Link
                 key={item.href}
                 href={item.href}
+                onClick={() => {
+                  if (isMobile && onMobileClose) onMobileClose();
+                }}
                 className={`flex items-center justify-between px-3.5 py-2.5 rounded-xl text-xs font-semibold transition-all ${
                   item.active
                     ? "bg-emerald-600 text-white shadow-sm shadow-emerald-600/30 font-bold"
@@ -188,6 +214,31 @@ export function AppSidebar() {
           <span className="font-medium text-slate-700 dark:text-slate-300">Actif</span>
         </div>
       </div>
-    </aside>
+    </div>
+  );
+
+  return (
+    <>
+      {/* Desktop Sidebar (visible on md: screens and larger) */}
+      <aside className="hidden md:flex w-64 bg-white dark:bg-slate-900 border-r border-slate-200 dark:border-slate-800 flex-col justify-between shrink-0">
+        {sidebarContent(false)}
+      </aside>
+
+      {/* Mobile Drawer (visible when mobileOpen is true on mobile) */}
+      {mobileOpen && (
+        <div className="fixed inset-0 z-50 md:hidden flex">
+          {/* Backdrop Blur Overlay */}
+          <div
+            className="fixed inset-0 bg-slate-950/70 backdrop-blur-sm transition-opacity animate-in fade-in duration-200"
+            onClick={onMobileClose}
+          />
+
+          {/* Drawer Content */}
+          <aside className="relative w-72 max-w-[85vw] h-full bg-white dark:bg-slate-900 border-r border-slate-200 dark:border-slate-800 shadow-2xl z-10 flex flex-col justify-between animate-in slide-in-from-left duration-250">
+            {sidebarContent(true)}
+          </aside>
+        </div>
+      )}
+    </>
   );
 }

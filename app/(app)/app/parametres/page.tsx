@@ -214,12 +214,12 @@ export default function SettingsPage() {
   };
 
   return (
-    <div className="p-6 md:p-8 space-y-8 max-w-5xl mx-auto">
+    <div className="p-3.5 sm:p-6 md:p-8 space-y-6 sm:space-y-8 max-w-5xl mx-auto">
       
       {/* Top Header */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
-          <h1 className="text-2xl font-extrabold text-slate-900 dark:text-white tracking-tight flex items-center gap-2.5">
+          <h1 className="text-xl sm:text-2xl font-extrabold text-slate-900 dark:text-white tracking-tight flex items-center gap-2.5">
             Paramètres & Intégrations
           </h1>
           <p className="text-xs text-slate-500 mt-1">
@@ -229,42 +229,42 @@ export default function SettingsPage() {
 
         <button
           onClick={handleSave}
-          className="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl text-xs font-bold bg-emerald-600 hover:bg-emerald-500 text-white shadow-sm shadow-emerald-600/30 transition-all self-start"
+          className="inline-flex items-center gap-2 px-4 sm:px-5 py-2.5 rounded-xl text-xs font-bold bg-emerald-600 hover:bg-emerald-500 text-white shadow-sm shadow-emerald-600/30 transition-all self-start sm:self-auto cursor-pointer"
         >
           {isSaved ? <Check className="h-4 w-4" /> : <Save className="h-4 w-4" />}
           {isSaved ? "Paramètres enregistrés !" : "Enregistrer les modifications"}
         </button>
       </div>
 
-      {/* Tabs */}
-      <div className="flex items-center gap-2 border-b border-slate-200 dark:border-slate-800 pb-3">
+      {/* Tabs Défilables avec le doigt sur mobile */}
+      <div className="flex items-center gap-2 border-b border-slate-200 dark:border-slate-800 pb-3 overflow-x-auto no-scrollbar">
         <button
           onClick={() => setActiveTab("whatsapp")}
-          className={`flex items-center gap-2 px-4 py-2 rounded-xl text-xs font-bold transition-all ${
+          className={`flex items-center gap-2 px-3.5 sm:px-4 py-2 rounded-xl text-xs font-bold transition-all shrink-0 whitespace-nowrap cursor-pointer ${
             activeTab === "whatsapp"
               ? "bg-emerald-600 text-white shadow-sm"
               : "text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800"
           }`}
         >
           <WhatsAppIcon className="h-4 w-4" />
-          <span>WhatsApp Business (QR Code / Meta)</span>
+          <span>WhatsApp Business (QR / Meta)</span>
         </button>
 
         <button
           onClick={() => setActiveTab("ai")}
-          className={`flex items-center gap-2 px-4 py-2 rounded-xl text-xs font-bold transition-all ${
+          className={`flex items-center gap-2 px-3.5 sm:px-4 py-2 rounded-xl text-xs font-bold transition-all shrink-0 whitespace-nowrap cursor-pointer ${
             activeTab === "ai"
               ? "bg-emerald-600 text-white shadow-sm"
               : "text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800"
           }`}
         >
           <Sparkles className="h-4 w-4" />
-          <span>Réglages IA & Ton Commercial</span>
+          <span>Réglages IA & Ton</span>
         </button>
 
         <button
           onClick={() => setActiveTab("calendar")}
-          className={`flex items-center gap-2 px-4 py-2 rounded-xl text-xs font-bold transition-all ${
+          className={`flex items-center gap-2 px-3.5 sm:px-4 py-2 rounded-xl text-xs font-bold transition-all shrink-0 whitespace-nowrap cursor-pointer ${
             activeTab === "calendar"
               ? "bg-emerald-600 text-white shadow-sm"
               : "text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800"
@@ -276,7 +276,7 @@ export default function SettingsPage() {
 
         <button
           onClick={() => setActiveTab("followup")}
-          className={`flex items-center gap-2 px-4 py-2 rounded-xl text-xs font-bold transition-all ${
+          className={`flex items-center gap-2 px-3.5 sm:px-4 py-2 rounded-xl text-xs font-bold transition-all shrink-0 whitespace-nowrap cursor-pointer ${
             activeTab === "followup"
               ? "bg-emerald-600 text-white shadow-sm"
               : "text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800"
@@ -288,7 +288,7 @@ export default function SettingsPage() {
 
         <button
           onClick={() => setActiveTab("business")}
-          className={`flex items-center gap-2 px-4 py-2 rounded-xl text-xs font-bold transition-all ${
+          className={`flex items-center gap-2 px-3.5 sm:px-4 py-2 rounded-xl text-xs font-bold transition-all shrink-0 whitespace-nowrap cursor-pointer ${
             activeTab === "business"
               ? "bg-emerald-600 text-white shadow-sm"
               : "text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800"
@@ -300,14 +300,14 @@ export default function SettingsPage() {
 
         <button
           onClick={() => setActiveTab("data")}
-          className={`flex items-center gap-2 px-4 py-2 rounded-xl text-xs font-bold transition-all ${
+          className={`flex items-center gap-2 px-3.5 sm:px-4 py-2 rounded-xl text-xs font-bold transition-all shrink-0 whitespace-nowrap cursor-pointer ${
             activeTab === "data"
               ? "bg-emerald-600 text-white shadow-sm"
               : "text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800"
           }`}
         >
           <Database className="h-4 w-4" />
-          <span>Base de données & Sauvegardes</span>
+          <span>Données & Sauvegardes</span>
         </button>
       </div>
 

@@ -530,7 +530,7 @@ export default function CataloguePage() {
   };
 
   return (
-    <div className="p-6 md:p-8 space-y-8 max-w-7xl mx-auto">
+    <div className="p-3.5 sm:p-6 md:p-8 space-y-5 sm:space-y-8 max-w-7xl mx-auto">
       
       {/* Toast de confirmation */}
       {toastMessage && (
@@ -547,7 +547,7 @@ export default function CataloguePage() {
             <Package className="h-3.5 w-3.5" />
             Catalogue Commercial & Biens Immobiliers
           </div>
-          <h1 className="text-2xl md:text-3xl font-extrabold text-slate-900 dark:text-white tracking-tight">
+          <h1 className="text-xl sm:text-2xl md:text-3xl font-extrabold text-slate-900 dark:text-white tracking-tight">
             Catalogue de Produits & Biens
           </h1>
           <p className="text-xs text-slate-500 mt-1 max-w-2xl">
