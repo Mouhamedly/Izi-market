@@ -1,0 +1,158 @@
+@import "tailwindcss";
+
+@layer base {
+  :root {
+    --background: #f8fafc;
+    --foreground: #0f172a;
+    --primary: #128C7E;
+    --primary-hover: #075E54;
+    --whatsapp-green: #25D366;
+    --card: #ffffff;
+    --card-foreground: #0f172a;
+    --border: #e2e8f0;
+    --muted: #64748b;
+    --muted-bg: #f1f5f9;
+    --accent: #25D366;
+    --accent-light: #dcf8c6;
+  }
+
+  .dark {
+    --background: #0b141a;
+    --foreground: #e9edef;
+    --primary: #00a884;
+    --primary-hover: #02906f;
+    --whatsapp-green: #25D366;
+    --card: #111b21;
+    --card-foreground: #e9edef;
+    --border: #202c33;
+    --muted: #8696a0;
+    --muted-bg: #202c33;
+    --accent: #00a884;
+    --accent-light: #005c4b;
+  }
+}
+
+body {
+  background-color: var(--background);
+  color: var(--foreground);
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+/* Custom scrollbars */
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+::-webkit-scrollbar-thumb {
+  background: rgba(140, 160, 175, 0.3);
+  border-radius: 9999px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: rgba(140, 160, 175, 0.5);
+}
+
+/* WhatsApp chat background pattern */
+.wa-chat-bg {
+  background-color: #efeae2;
+  background-image: radial-gradient(#d1d7db 0.75px, transparent 0.75px), radial-gradient(#d1d7db 0.75px, #efeae2 0.75px);
+  background-size: 30px 30px;
+  background-position: 0 0, 15px 15px;
+}
+
+.dark .wa-chat-bg {
+  background-color: #0b141a;
+  background-image: radial-gradient(#1f2c34 0.75px, transparent 0.75px), radial-gradient(#1f2c34 0.75px, #0b141a 0.75px);
+  background-size: 30px 30px;
+  background-position: 0 0, 15px 15px;
+}
+
+/* Glassmorphism */
+.glass-panel {
+  background: rgba(255, 255, 255, 0.85);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  border: 1px solid rgba(226, 232, 240, 0.8);
+}
+
+.dark .glass-panel {
+  background: rgba(17, 27, 33, 0.85);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  border: 1px solid rgba(32, 44, 51, 0.8);
+}
+
+/* Animations */
+@keyframes pulseGlow {
+  0%, 100% {
+    box-shadow: 0 0 15px rgba(37, 211, 102, 0.35);
+  }
+  50% {
+    box-shadow: 0 0 25px rgba(37, 211, 102, 0.65);
+  }
+}
+
+.pulse-glow {
+  animation: pulseGlow 2.5s infinite;
+}
+
+@keyframes scanLaser {
+  0% {
+    top: 6%;
+    opacity: 0.85;
+  }
+  50% {
+    top: 90%;
+    opacity: 1;
+  }
+  100% {
+    top: 6%;
+    opacity: 0.85;
+  }
+}
+
+.animate-scan-laser {
+  animation: scanLaser 2.4s ease-in-out infinite;
+}
+
+/* Assurer que tous les champs de saisie affichent le texte saisi en blanc éclatant */
+input, textarea, select {
+  color: #ffffff !important;
+  -webkit-text-fill-color: #ffffff !important;
+}
+
+@media (prefers-color-scheme: dark) {
+  input, textarea, select {
+    color: #ffffff !important;
+    -webkit-text-fill-color: #ffffff !important;
+  }
+  input::placeholder, textarea::placeholder {
+    color: #94a3b8 !important;
+    -webkit-text-fill-color: #94a3b8 !important;
+    opacity: 0.9 !important;
+  }
+}
+
+.dark input, .dark textarea, .dark select {
+  color: #ffffff !important;
+  -webkit-text-fill-color: #ffffff !important;
+}
+
+.dark input::placeholder, .dark textarea::placeholder {
+  color: #94a3b8 !important;
+  -webkit-text-fill-color: #94a3b8 !important;
+  opacity: 0.9 !important;
+}
+
+input::placeholder, textarea::placeholder {
+  color: #94a3b8 !important;
+  opacity: 0.9 !important;
+}
+
