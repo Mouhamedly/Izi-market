@@ -36,21 +36,243 @@ const TONE_INSTRUCTIONS: Record<string, string> = {
   direct: `Sois direct, concis et efficace. Va droit au but sans formules superflues, idéal pour des réponses rapides et percutantes.`
 };
 
-export async function generateAiReply({
+export async function generateAiReply(params: GenerateReplyParams): Promise<GenerateReplyResult> {
+  const openAiKey = process.env.OPENAI_API_KEY?.trim();
+  const anthropicKey = process.env.ANTHROPIC_API_KEY?.trim();
+
+  // 1. Essayer avec OpenAI si une clé valide est renseignée
+  if (openAiKey && !openAiKey.includes("placeholder-") && openAiKey.startsWith("sk-")) {
+    try {
+      return await generateOpenAiReply({ ...params, apiKey: openAiKey });
+    } catch (error) {
+      console.warn("[AI Assistant] Échec OpenAI, passage au fallback ou Anthropic:", error);
+    }
+  }
+
+  // 2. Essayer avec Anthropic Claude si configuré
+  if (anthropicKey && !anthropicKey.includes("placeholder-") && anthropicKey.startsWith("sk-ant-")) {
+    try {
+      return await generateAnthropicReply({ ...params, apiKey: anthropicKey });
+    } catch (error) {
+      console.warn("[AI Assistant] Échec Anthropic, passage au fallback local:", error);
+    }
+  }
+
+  // 3. Fallback autonome
+  return generateLocalFallbackReply(params);
+}
+
+/**
+ * Moteur OpenAI (GPT-4o / GPT-4o-mini avec function calling)
+ */
+async function generateOpenAiReply({
+  apiKey,
   business,
   contact,
   history,
   faqs,
   catalog,
   userMessage
-}: GenerateReplyParams): Promise<GenerateReplyResult> {
-  const apiKey = process.env.ANTHROPIC_API_KEY;
+}: GenerateReplyParams & { apiKey: string }): Promise<GenerateReplyResult> {
+  const faqSection = faqs.length > 0
+    ? faqs.map(f => `Q: ${f.question}\nR: ${f.answer}`).join("\n\n")
+    : "Aucune FAQ enregistrée.";
 
-  // Si pas de clé Anthropic configurée ou clé de test, réponse de secours intelligente
-  if (!apiKey || apiKey.includes("placeholder-") || apiKey.trim() === "") {
-    return generateLocalFallbackReply({ business, contact, history, faqs, catalog, userMessage });
+  const catalogSection = catalog.length > 0
+    ? catalog.map(c => `- ${c.title} : ${c.price} (${c.available ? 'Disponible' : 'Épuisé'}). Description: ${c.description || 'N/A'}`).join("\n")
+    : "Aucun article au catalogue pour le moment.";
+
+  const toneGuide = TONE_INSTRUCTIONS[business.ai_tone] || TONE_INSTRUCTIONS.chaleureux;
+
+  const systemPrompt = `Tu es l'assistant commercial WhatsApp officiel de l'entreprise "${business.name}" (Secteur : ${business.sector || 'Commerce / Service'}).
+Ton objectif est de renseigner les prospects, valoriser nos offres, répondre à leurs questions avec précision et convertir les demandes en ventes ou rendez-vous.
+
+INSTRUCTIONS DE TON ET STYLE :
+${toneGuide}
+- Langue : Réponds toujours en Français fluide et naturel.
+- Format WhatsApp : Messages aérés, concis, bien découpés (paragraphes courts, emojis pertinents, listes si nécessaire).
+- Monnaie : Exprime les prix en Francs CFA (FCFA) ou selon le catalogue.
+
+BASE DE CONNAISSANCES DE L'ENTREPRISE :
+--- FAQ ---
+${faqSection}
+
+--- CATALOGUE / OFFRES ---
+${catalogSection}
+
+INFOS DU PROSPECT ACTUEL :
+- Nom connu : ${contact.name || 'Non identifié pour le moment'}
+- Numéro WhatsApp : ${contact.wa_phone}
+- Statut actuel dans le pipeline : ${contact.status}
+- Besoin noté : ${contact.need || 'Non précisé'}
+- Budget noté : ${contact.budget || 'Non précisé'}`;
+
+  const messages: Array<{ role: "system" | "user" | "assistant"; content: string }> = [
+    { role: "system", content: systemPrompt }
+  ];
+
+  const recentHistory = history.slice(-20);
+  for (const msg of recentHistory) {
+    messages.push({
+      role: msg.sender === "contact" ? "user" : "assistant",
+      content: msg.body
+    });
   }
 
+  if (messages[messages.length - 1]?.content !== userMessage) {
+    messages.push({ role: "user", content: userMessage });
+  }
+
+  const tools = [
+    {
+      type: "function",
+      function: {
+        name: "update_lead",
+        description: "Met à jour les informations de qualification du prospect dans le CRM IZI Market",
+        parameters: {
+          type: "object",
+          properties: {
+            name: { type: "string", description: "Nom complet ou prénom du prospect" },
+            need: { type: "string", description: "Besoin ou produit recherché" },
+            budget: { type: "string", description: "Budget mentionné" },
+            status: {
+              type: "string",
+              enum: ["nouveau", "interesse", "rdv", "negociation", "client", "perdu"],
+              description: "Nouvel état d'avancement dans le pipeline"
+            }
+          }
+        }
+      }
+    },
+    {
+      type: "function",
+      function: {
+        name: "book_appointment",
+        description: "Enregistre un rendez-vous dans Google Agenda pour le prospect",
+        parameters: {
+          type: "object",
+          properties: {
+            title: { type: "string", description: "Titre du rendez-vous" },
+            date: { type: "string", description: "Date au format YYYY-MM-DD" },
+            time: { type: "string", description: "Heure du rendez-vous HH:MM" },
+            duration_minutes: { type: "number", description: "Durée en minutes" },
+            notes: { type: "string", description: "Détails" }
+          },
+          required: ["title", "time"]
+        }
+      }
+    },
+    {
+      type: "function",
+      function: {
+        name: "request_human_handoff",
+        description: "Transfère la conversation à un conseiller humain",
+        parameters: {
+          type: "object",
+          properties: {
+            reason: { type: "string", description: "Motif du transfert" }
+          },
+          required: ["reason"]
+        }
+      }
+    }
+  ];
+
+  const response = await fetch("https://api.openai.com/v1/chat/completions", {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+      Authorization: `Bearer ${apiKey}`
+    },
+    body: JSON.stringify({
+      model: "gpt-4o-mini",
+      messages,
+      tools,
+      temperature: 0.7,
+      max_tokens: 1000
+    })
+  });
+
+  if (!response.ok) {
+    const errText = await response.text();
+    throw new Error(`OpenAI API error (${response.status}): ${errText}`);
+  }
+
+  const data = await response.json();
+  const choice = data.choices?.[0];
+  const message = choice?.message;
+
+  let replyText = message?.content || "";
+  let leadUpdates: GenerateReplyResult["leadUpdates"] = undefined;
+  let appointmentBooked: GenerateReplyResult["appointmentBooked"] = undefined;
+  let requestHandoff = false;
+  let handoffReason: string | undefined = undefined;
+
+  if (message?.tool_calls && Array.isArray(message.tool_calls)) {
+    for (const toolCall of message.tool_calls) {
+      const func = toolCall.function;
+      let args: any = {};
+      try {
+        args = JSON.parse(func.arguments || "{}");
+      } catch {}
+
+      if (func.name === "update_lead") {
+        leadUpdates = {
+          name: args.name || undefined,
+          need: args.need || undefined,
+          budget: args.budget || undefined,
+          status: (args.status as PipelineStatus) || undefined
+        };
+      } else if (func.name === "book_appointment") {
+        appointmentBooked = {
+          title: args.title || `Rendez-vous - ${contact.name || "Prospect"}`,
+          date: args.date || new Date().toISOString().split("T")[0],
+          time: args.time || "15:00",
+          durationMinutes: args.duration_minutes || 45,
+          notes: args.notes || undefined
+        };
+        leadUpdates = {
+          ...(leadUpdates || {}),
+          status: "rdv"
+        };
+      } else if (func.name === "request_human_handoff") {
+        requestHandoff = true;
+        handoffReason = args.reason;
+      }
+    }
+  }
+
+  if (!replyText.trim()) {
+    if (appointmentBooked) {
+      replyText = `C'est noté avec grand plaisir ! Votre rendez-vous est confirmé pour le ${appointmentBooked.date} à ${appointmentBooked.time}. Nous vous attendons avec impatience !`;
+    } else if (requestHandoff) {
+      replyText = "Bien noté ! Je transmets immédiatement votre demande à un membre de notre équipe qui va vous répondre sous peu.";
+    } else {
+      replyText = "C'est bien noté, merci pour ces précisions ! Comment puis-je vous aider davantage ?";
+    }
+  }
+
+  return {
+    replyText: replyText.trim(),
+    leadUpdates,
+    appointmentBooked,
+    requestHandoff,
+    handoffReason
+  };
+}
+
+/**
+ * Moteur Anthropic Claude
+ */
+async function generateAnthropicReply({
+  apiKey,
+  business,
+  contact,
+  history,
+  faqs,
+  catalog,
+  userMessage
+}: GenerateReplyParams & { apiKey: string }): Promise<GenerateReplyResult> {
   try {
     const anthropic = new Anthropic({ apiKey });
 
