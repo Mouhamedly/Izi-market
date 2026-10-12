@@ -6,23 +6,15 @@ import { useApp } from "@/lib/store";
 import {
   MapPin,
   Search,
-  Sparkles,
-  CheckCircle2,
   AlertCircle,
-  ExternalLink,
-  Phone,
-  Building2,
   Star,
   Download,
   RefreshCw,
-  SlidersHorizontal,
-  Layers,
   ArrowRight,
   Globe,
   Check,
   X,
-  MessageCircle,
-  Clock
+  MessageCircle
 } from "lucide-react";
 import { Contact, PipelineStatus } from "@/types/database";
 
@@ -44,38 +36,20 @@ interface ScrapedLead {
   scrapedAt: string;
 }
 
-const PRESET_KEYWORDS = [
-  "Restaurants",
-  "Agences Immobilières",
-  "Pharmacies",
-  "Boutiques de mode",
-  "Salons de coiffure",
-  "Cliniques & Médecins",
-  "Hôtels",
-  "Supermarchés",
-  "Garages & Mécanique",
-  "Cabinets d'avocats"
-];
-
-const PRESET_LOCATIONS = [
-  "Dakar, Sénégal",
-  "Plateau, Dakar",
-  "Almadies, Dakar",
-  "Thiès, Sénégal",
-  "Saly, Mbour, Sénégal",
-  "Saint-Louis, Sénégal",
-  "Abidjan, Côte d'Ivoire"
-];
-
 export function GoogleMapsScraper() {
   const { importContacts } = useApp();
 
-  // Paramètres du Scraper
-  const [searchTerm, setSearchTerm] = useState("Restaurants");
-  const [location, setLocation] = useState("Dakar, Sénégal");
+  // Paramètres du Scraper (Inspiré de l'interface Google Maps Leads)
+  const [sector, setSector] = useState("Agences Immobilières");
+  const [city, setCity] = useState("Dakar");
+  const [country, setCountry] = useState("Sénégal");
   const [maxPlaces, setMaxPlaces] = useState<number>(20);
   const [language, setLanguage] = useState("fr");
   const [skipClosedPlaces, setSkipClosedPlaces] = useState(true);
+
+  // Terme de recherche combiné
+  const currentSearchTerm = sector.trim() || "Entreprise";
+  const currentLocation = city.trim() ? `${city.trim()}, ${country.trim()}` : country.trim();
 
   // État du Scraping
   const [isScraping, setIsScraping] = useState(false);
@@ -129,7 +103,7 @@ export function GoogleMapsScraper() {
   // Lancer le scraping sur Apify
   const handleStartScrape = async (e?: React.FormEvent) => {
     if (e) e.preventDefault();
-    if (!searchTerm.trim()) return;
+    if (!sector.trim()) return;
 
     setIsScraping(true);
     setErrorMessage(null);
@@ -142,8 +116,8 @@ export function GoogleMapsScraper() {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           action: "start",
-          searchTerm,
-          location,
+          searchTerm: sector.trim(),
+          location: currentLocation,
           maxPlaces,
           language,
           skipClosedPlaces
@@ -340,7 +314,7 @@ export function GoogleMapsScraper() {
     const url = URL.createObjectURL(blob);
     const link = document.createElement("a");
     link.href = url;
-    link.setAttribute("download", `google_maps_leads_${searchTerm.replace(/\s+/g, "_")}_${Date.now()}.csv`);
+    link.setAttribute("download", `google_maps_leads_${sector.replace(/\s+/g, "_")}_${Date.now()}.csv`);
     document.body.appendChild(link);
     link.click();
     document.body.removeChild(link);
@@ -348,215 +322,170 @@ export function GoogleMapsScraper() {
 
   return (
     <div className="space-y-6">
-      {/* Header & Description */}
-      <div className="bg-gradient-to-br from-emerald-600 via-teal-700 to-emerald-800 rounded-3xl p-6 sm:p-8 text-white shadow-xl relative overflow-hidden">
-        <div className="absolute right-0 top-0 translate-x-10 -translate-y-10 w-64 h-64 bg-white/10 rounded-full blur-2xl pointer-events-none" />
-        <div className="relative z-10 flex flex-col md:flex-row md:items-center justify-between gap-6">
-          <div className="space-y-2 max-w-2xl">
-            <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-white/15 backdrop-blur-md text-emerald-100 text-xs font-semibold">
-              <Sparkles className="h-3.5 w-3.5 text-yellow-300" />
-              <span>Propulsé par Apify (compass/crawler-google-places)</span>
-            </div>
-            <h2 className="text-2xl sm:text-3xl font-extrabold tracking-tight">
-              Scraper Google Maps B2B
-            </h2>
-            <p className="text-sm sm:text-base text-emerald-100/90 leading-relaxed">
-              Extrayez en direct les coordonnées des commerces, agences et entreprises locales sur Google Maps (téléphone, note, adresse, site) et importez-les instantanément dans votre CRM WhatsApp.
-            </p>
-          </div>
-
-          <div className="bg-white/10 backdrop-blur-md border border-white/20 p-4 rounded-2xl flex items-center gap-3 self-start md:self-auto">
-            <div className="h-10 w-10 rounded-xl bg-emerald-500/30 flex items-center justify-center shrink-0">
-              <CheckCircle2 className="h-6 w-6 text-emerald-300" />
-            </div>
-            <div className="text-xs">
-              <div className="font-bold text-white">Clé API Apify connectée</div>
-              <div className="text-emerald-200 text-[11px]">Prêt pour l'extraction de leads</div>
-            </div>
-          </div>
+      {/* Carte principale de recherche inspirée de la capture d'écran */}
+      <div className="bg-white dark:bg-slate-900 rounded-3xl shadow-xl border border-slate-200/90 dark:border-slate-800 overflow-hidden max-w-3xl mx-auto">
+        {/* Entête Vert Forêt Sombre Élégant */}
+        <div className="bg-[#12281a] dark:bg-[#0c1a11] px-6 py-8 sm:px-10 sm:py-9 text-center text-white">
+          <h2 className="text-2xl sm:text-3xl font-bold tracking-tight text-white font-serif">
+            Trouver de nouveaux leads
+          </h2>
+          <p className="text-sm sm:text-base text-emerald-100/80 mt-2 font-normal">
+            Remplissez ce formulaire pour lancer l'extraction depuis Google Maps.
+          </p>
         </div>
-      </div>
 
-      {/* Formulaire de recherche */}
-      <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl p-5 sm:p-6 shadow-xs">
-        <form onSubmit={handleStartScrape} className="space-y-5">
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
-            {/* Terme de recherche */}
-            <div className="space-y-2">
-              <label className="block text-xs font-bold text-slate-700 dark:text-slate-300">
-                1. Mots-clés ou Secteur d'activité <span className="text-rose-500">*</span>
-              </label>
-              <div className="relative">
-                <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400" />
-                <input
-                  type="text"
-                  value={searchTerm}
-                  onChange={(e) => setSearchTerm(e.target.value)}
-                  placeholder="Ex : Restaurant, Agence immobilière, Pharmacie..."
+        {/* Corps du Formulaire */}
+        <form onSubmit={handleStartScrape} className="p-6 sm:p-9 space-y-6">
+          {/* Secteur d'activité */}
+          <div className="space-y-2">
+            <label className="block text-sm sm:text-base font-bold text-slate-900 dark:text-white">
+              Secteur d'activité <span className="text-rose-500">*</span>
+            </label>
+            <div className="relative">
+              <input
+                type="text"
+                value={sector}
+                onChange={(e) => setSector(e.target.value)}
+                placeholder="ex: Plombier, Agence immobilière, Restaurant..."
+                disabled={isScraping}
+                className="w-full px-4 py-3.5 rounded-2xl border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-900 dark:text-white text-base focus:outline-none focus:ring-2 focus:ring-emerald-600 focus:border-transparent transition-all shadow-xs"
+                required
+              />
+            </div>
+
+            {/* Suggestions rapides sous l'input */}
+            <div className="flex items-center gap-1.5 flex-wrap pt-1">
+              <span className="text-[11px] text-slate-400 font-medium">Suggestions :</span>
+              {["Plombier", "Agence immobilière", "Restaurant", "Pharmacie", "Boutique de mode", "Clinique", "Hôtel"].map((kw) => (
+                <button
+                  key={kw}
+                  type="button"
+                  onClick={() => setSector(kw)}
                   disabled={isScraping}
-                  className="w-full pl-10 pr-4 py-2.5 rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800/60 text-slate-900 dark:text-white text-sm focus:outline-hidden focus:ring-2 focus:ring-emerald-500 transition-all"
-                  required
-                />
-              </div>
+                  className={`text-[11px] px-2.5 py-1 rounded-lg transition-all ${
+                    sector.toLowerCase() === kw.toLowerCase()
+                      ? "bg-[#12281a] text-white font-semibold"
+                      : "bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 text-slate-600 dark:text-slate-300"
+                  }`}
+                >
+                  {kw}
+                </button>
+              ))}
+            </div>
+          </div>
 
-              {/* Suggestions rapides */}
-              <div className="flex items-center gap-1.5 flex-wrap pt-1">
-                <span className="text-[11px] text-slate-400">Suggestions :</span>
-                {PRESET_KEYWORDS.slice(0, 6).map((kw) => (
+          {/* Ligne Ville & Pays */}
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
+            {/* Ville */}
+            <div className="space-y-2">
+              <label className="block text-sm sm:text-base font-bold text-slate-900 dark:text-white">
+                Ville
+              </label>
+              <input
+                type="text"
+                value={city}
+                onChange={(e) => setCity(e.target.value)}
+                placeholder="ex: Dakar, Abidjan..."
+                disabled={isScraping}
+                className="w-full px-4 py-3.5 rounded-2xl border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-900 dark:text-white text-base focus:outline-none focus:ring-2 focus:ring-emerald-600 focus:border-transparent transition-all shadow-xs"
+              />
+              <div className="flex items-center gap-1.5 flex-wrap pt-0.5">
+                {["Dakar", "Plateau", "Almadies", "Thiès", "Saly"].map((c) => (
                   <button
-                    key={kw}
+                    key={c}
                     type="button"
-                    onClick={() => setSearchTerm(kw)}
+                    onClick={() => setCity(c)}
                     disabled={isScraping}
-                    className={`text-[11px] px-2.5 py-1 rounded-lg transition-all ${
-                      searchTerm === kw
-                        ? "bg-emerald-600 text-white font-semibold"
-                        : "bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 text-slate-600 dark:text-slate-300"
-                    }`}
+                    className="text-[10px] px-2 py-0.5 rounded-md bg-slate-100 dark:bg-slate-800 text-slate-500 hover:text-slate-900 dark:hover:text-white"
                   >
-                    {kw}
+                    {c}
                   </button>
                 ))}
               </div>
             </div>
 
-            {/* Localisation */}
+            {/* Pays */}
             <div className="space-y-2">
-              <label className="block text-xs font-bold text-slate-700 dark:text-slate-300">
-                2. Localisation (Ville / Quartier / Pays) <span className="text-rose-500">*</span>
+              <label className="block text-sm sm:text-base font-bold text-slate-900 dark:text-white">
+                Pays
               </label>
               <div className="relative">
-                <MapPin className="absolute left-3.5 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400" />
-                <input
-                  type="text"
-                  value={location}
-                  onChange={(e) => setLocation(e.target.value)}
-                  placeholder="Ex : Dakar, Sénégal ou Plateau, Dakar"
+                <select
+                  value={country}
+                  onChange={(e) => setCountry(e.target.value)}
                   disabled={isScraping}
-                  className="w-full pl-10 pr-4 py-2.5 rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800/60 text-slate-900 dark:text-white text-sm focus:outline-hidden focus:ring-2 focus:ring-emerald-500 transition-all"
-                  required
-                />
-              </div>
-
-              {/* Presets rapides de localisation */}
-              <div className="flex items-center gap-1.5 flex-wrap pt-1">
-                <span className="text-[11px] text-slate-400">Zones :</span>
-                {PRESET_LOCATIONS.slice(0, 5).map((loc) => (
-                  <button
-                    key={loc}
-                    type="button"
-                    onClick={() => setLocation(loc)}
-                    disabled={isScraping}
-                    className={`text-[11px] px-2.5 py-1 rounded-lg transition-all ${
-                      location === loc
-                        ? "bg-emerald-600 text-white font-semibold"
-                        : "bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 text-slate-600 dark:text-slate-300"
-                    }`}
-                  >
-                    {loc}
-                  </button>
-                ))}
+                  className="w-full px-4 py-3.5 rounded-2xl border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-900 dark:text-white text-base appearance-none focus:outline-none focus:ring-2 focus:ring-emerald-600 focus:border-transparent transition-all shadow-xs pr-10 cursor-pointer"
+                >
+                  <option value="Sénégal">Sénégal</option>
+                  <option value="Côte d'Ivoire">Côte d'Ivoire</option>
+                  <option value="Mali">Mali</option>
+                  <option value="Guinée">Guinée</option>
+                  <option value="Cameroun">Cameroun</option>
+                  <option value="Bénin">Bénin</option>
+                  <option value="Togo">Togo</option>
+                  <option value="France">France</option>
+                  <option value="Autre">Autre</option>
+                </select>
+                <div className="absolute right-4 top-1/2 -translate-y-1/2 pointer-events-none text-slate-500">
+                  <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" d="M19 9l-7 7-7-7" />
+                  </svg>
+                </div>
               </div>
             </div>
           </div>
 
           {/* Options avancées : Nombre de places, langue, filtres */}
-          <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 pt-2 border-t border-slate-100 dark:border-slate-800">
-            {/* Nombre d'adresses */}
-            <div className="space-y-1.5">
-              <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300">
-                Nombre de contacts à extraire
-              </label>
-              <div className="flex items-center gap-2">
-                {[10, 20, 50, 100].map((count) => (
-                  <button
-                    key={count}
-                    type="button"
-                    onClick={() => setMaxPlaces(count)}
-                    disabled={isScraping}
-                    className={`flex-1 py-1.5 text-xs font-bold rounded-xl border transition-all ${
-                      maxPlaces === count
-                        ? "bg-emerald-50 dark:bg-emerald-950/40 border-emerald-500 text-emerald-700 dark:text-emerald-400"
-                        : "border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-400 hover:bg-slate-50 dark:hover:bg-slate-800"
-                    }`}
-                  >
-                    {count}
-                  </button>
-                ))}
-              </div>
-            </div>
-
-            {/* Langue */}
-            <div className="space-y-1.5">
-              <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300">
-                Langue de recherche
-              </label>
-              <select
-                value={language}
-                onChange={(e) => setLanguage(e.target.value)}
-                disabled={isScraping}
-                className="w-full py-2 px-3 rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 text-slate-900 dark:text-white text-xs font-medium focus:ring-2 focus:ring-emerald-500"
-              >
-                <option value="fr">Français (fr)</option>
-                <option value="en">English (en)</option>
-                <option value="es">Español (es)</option>
-                <option value="ar">العربية (ar)</option>
-              </select>
-            </div>
-
-            {/* Ignorer fermés */}
-            <div className="space-y-1.5 flex flex-col justify-end">
-              <label className="flex items-center gap-2 text-xs font-medium text-slate-700 dark:text-slate-300 cursor-pointer select-none py-2">
-                <input
-                  type="checkbox"
-                  checked={skipClosedPlaces}
-                  onChange={(e) => setSkipClosedPlaces(e.target.checked)}
-                  disabled={isScraping}
-                  className="rounded-md border-slate-300 text-emerald-600 focus:ring-emerald-500 h-4 w-4"
-                />
-                <span>Ignorer les lieux fermés définitivement</span>
-              </label>
-            </div>
-          </div>
-
-          {/* Bouton d'action principal */}
-          <div className="flex flex-col sm:flex-row items-center justify-between gap-4 pt-3 border-t border-slate-100 dark:border-slate-800">
-            <div className="text-xs text-slate-500 flex items-center gap-1.5">
-              <Clock className="h-3.5 w-3.5 text-slate-400" />
-              <span>Temps estimé : environ 15 à 30 secondes pour {maxPlaces} fiches</span>
-            </div>
-
-            <div className="flex items-center gap-3 w-full sm:w-auto">
-              {isScraping ? (
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pt-2 border-t border-slate-100 dark:border-slate-800 text-xs text-slate-500">
+            <div className="flex items-center gap-2">
+              <span className="font-semibold text-slate-700 dark:text-slate-300">Volume à extraire :</span>
+              {[10, 20, 50, 100].map((num) => (
                 <button
+                  key={num}
                   type="button"
-                  onClick={handleCancelScrape}
-                  className="w-full sm:w-auto px-4 py-2.5 rounded-xl text-xs font-bold bg-rose-50 hover:bg-rose-100 text-rose-600 border border-rose-200 transition-all flex items-center justify-center gap-2"
+                  onClick={() => setMaxPlaces(num)}
+                  disabled={isScraping}
+                  className={`px-2.5 py-1 rounded-lg border font-bold transition-all ${
+                    maxPlaces === num
+                      ? "bg-emerald-50 dark:bg-emerald-950/40 border-emerald-500 text-emerald-700 dark:text-emerald-400"
+                      : "border-slate-200 dark:border-slate-700 text-slate-500 hover:bg-slate-50"
+                  }`}
                 >
-                  <X className="h-4 w-4" />
-                  <span>Arrêter</span>
+                  {num}
                 </button>
-              ) : null}
-
-              <button
-                type="submit"
-                disabled={isScraping || !searchTerm.trim()}
-                className="w-full sm:w-auto px-6 py-2.5 rounded-xl text-xs font-bold text-white bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-700 hover:to-teal-700 shadow-md shadow-emerald-600/20 disabled:opacity-50 transition-all flex items-center justify-center gap-2"
-              >
-                {isScraping ? (
-                  <>
-                    <RefreshCw className="h-4 w-4 animate-spin" />
-                    <span>Scraping en cours ({elapsedSeconds}s)...</span>
-                  </>
-                ) : (
-                  <>
-                    <Search className="h-4 w-4" />
-                    <span>Lancer le Scraping Google Maps</span>
-                  </>
-                )}
-              </button>
+              ))}
             </div>
+
+            <label className="flex items-center gap-2 cursor-pointer select-none">
+              <input
+                type="checkbox"
+                checked={skipClosedPlaces}
+                onChange={(e) => setSkipClosedPlaces(e.target.checked)}
+                disabled={isScraping}
+                className="rounded border-slate-300 text-emerald-600 focus:ring-emerald-500"
+              />
+              <span>Ignorer les lieux fermés</span>
+            </label>
           </div>
+
+          {/* Bouton Rouge Exactement comme la capture d'écran */}
+          <button
+            type="submit"
+            disabled={isScraping || !sector.trim()}
+            className="w-full py-4 px-6 rounded-2xl bg-[#d9383a] hover:bg-[#c6282a] active:scale-[0.99] text-white font-bold text-base shadow-lg shadow-red-500/20 disabled:opacity-50 transition-all flex items-center justify-center gap-2.5 cursor-pointer"
+          >
+            {isScraping ? (
+              <>
+                <RefreshCw className="h-5 w-5 animate-spin" />
+                <span>Extraction en cours sur Google Maps ({elapsedSeconds}s)...</span>
+              </>
+            ) : (
+              <>
+                <Search className="h-5 w-5 stroke-[2.5]" />
+                <span>Extraire les prospects</span>
+              </>
+            )}
+          </button>
         </form>
       </div>
 
@@ -596,8 +525,8 @@ export function GoogleMapsScraper() {
             </p>
           </div>
           <div className="text-[11px] text-slate-500">
-            Recherche : <span className="text-slate-300 font-semibold">{searchTerm}</span> à{" "}
-            <span className="text-slate-300 font-semibold">{location}</span>
+            Recherche : <span className="text-slate-300 font-semibold">{sector}</span> à{" "}
+            <span className="text-slate-300 font-semibold">{currentLocation}</span>
           </div>
         </div>
       )}
