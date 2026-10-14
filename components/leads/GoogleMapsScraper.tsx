@@ -14,7 +14,11 @@ import {
   Globe,
   Check,
   X,
-  MessageCircle
+  MessageCircle,
+  MessageSquare,
+  Send,
+  Copy,
+  Sparkles
 } from "lucide-react";
 import { Contact, PipelineStatus } from "@/types/database";
 
@@ -37,7 +41,7 @@ interface ScrapedLead {
 }
 
 export function GoogleMapsScraper() {
-  const { importContacts } = useApp();
+  const { business, importContacts } = useApp();
 
   // Paramètres du Scraper (Inspiré de l'interface Google Maps Leads)
   const [sector, setSector] = useState("Agences Immobilières");
@@ -73,6 +77,13 @@ export function GoogleMapsScraper() {
     updated: number;
     total: number;
   } | null>(null);
+
+  // Modal de message / démarchage WhatsApp professionnel
+  const [selectedLeadForMessage, setSelectedLeadForMessage] = useState<ScrapedLead | null>(null);
+  const [messageTemplate, setMessageTemplate] = useState<"services" | "partenariat" | "rdv">("services");
+  const [messageText, setMessageText] = useState("");
+  const [copiedSuccess, setCopiedSuccess] = useState(false);
+  const [isSavingLeadToCrm, setIsSavingLeadToCrm] = useState(false);
 
   const pollIntervalRef = useRef<NodeJS.Timeout | null>(null);
   const timerIntervalRef = useRef<NodeJS.Timeout | null>(null);
@@ -318,6 +329,93 @@ export function GoogleMapsScraper() {
     document.body.appendChild(link);
     link.click();
     document.body.removeChild(link);
+  };
+
+  // Générateur de message professionnel de démarchage
+  const buildOutreachMessage = (lead: ScrapedLead, type: "services" | "partenariat" | "rdv") => {
+    const bizName = business?.name || "Notre entreprise";
+    const leadCategory = lead.category || "votre secteur d'activité";
+    const leadCity = lead.city || "votre zone";
+
+    if (type === "services") {
+      return `Bonjour ${lead.name},\n\nJe me permets de vous contacter car j'ai découvert votre activité dans le domaine de "${leadCategory}" à ${leadCity}.\n\nNous accompagnons les professionnels comme vous chez ${bizName} pour optimiser votre visibilité, automatiser votre gestion commerciale et attirer davantage de clients qualifiés.\n\nSeriez-vous ouvert(e) à un court échange de 5 minutes cette semaine pour explorer comment nous pourrions vous faire gagner du temps et booster vos résultats ?\n\nBien cordialement,\nL'équipe ${bizName}`;
+    }
+
+    if (type === "rdv") {
+      return `Bonjour l'équipe de ${lead.name},\n\nJ'ai découvert vos services à ${leadCity} et j'apprécie beaucoup la qualité de vos prestations.\n\nJ'aimerais vous proposer un court échange téléphonique de 10 minutes avec notre responsable afin de vous présenter des opportunités concrètes adaptées aux entreprises de votre secteur.\n\nQuel créneau vous conviendrait le mieux cette semaine (en matinée ou l'après-midi) ?\n\nExcellente journée à vous,\n${bizName}`;
+    }
+
+    // Partenariat
+    return `Bonjour ${lead.name},\n\nNous développons actuellement un réseau de partenaires de confiance sur ${leadCity} et le profil de votre établissement (${leadCategory}) a particulièrement retenu notre attention.\n\nPourrions-nous échanger brièvement afin d'étudier de potentielles opportunités de collaboration et de synergies commerciales entre nos deux structures ?\n\nAu plaisir d'échanger avec vous,\n${bizName}`;
+  };
+
+  const handleOpenMessageModal = (lead: ScrapedLead) => {
+    setSelectedLeadForMessage(lead);
+    setMessageTemplate("services");
+    setMessageText(buildOutreachMessage(lead, "services"));
+    setCopiedSuccess(false);
+  };
+
+  const handleSelectTemplate = (type: "services" | "partenariat" | "rdv") => {
+    if (!selectedLeadForMessage) return;
+    setMessageTemplate(type);
+    setMessageText(buildOutreachMessage(selectedLeadForMessage, type));
+  };
+
+  const handleCopyMessage = async () => {
+    try {
+      await navigator.clipboard.writeText(messageText);
+      setCopiedSuccess(true);
+      setTimeout(() => setCopiedSuccess(false), 3000);
+    } catch {}
+  };
+
+  const handleSendViaWhatsApp = (lead: ScrapedLead) => {
+    const rawPhone = lead.normalizedPhone || lead.phone;
+    const digits = rawPhone.replace(/\D/g, "");
+    if (!digits) {
+      alert("Aucun numéro de téléphone disponible pour ce prospect.");
+      return;
+    }
+    const url = `https://wa.me/${digits}?text=${encodeURIComponent(messageText)}`;
+    window.open(url, "_blank");
+  };
+
+  const handleImportAndSendWhatsApp = async (lead: ScrapedLead) => {
+    setIsSavingLeadToCrm(true);
+    try {
+      const notesParts = [
+        `[Scraper Google Maps - Démarché par Message WhatsApp]`,
+        lead.category ? `Catégorie : ${lead.category}` : null,
+        lead.address ? `Adresse : ${lead.address}` : null,
+        lead.city ? `Ville : ${lead.city}` : null,
+        lead.totalScore ? `Note : ${lead.totalScore}/5 (${lead.reviewsCount} avis)` : null,
+        lead.website ? `Site web : ${lead.website}` : null,
+        `Message envoyé : "${messageText.slice(0, 100)}..."`
+      ].filter(Boolean);
+
+      await importContacts([
+        {
+          name: lead.name || "Prospect Google Maps",
+          wa_phone: lead.normalizedPhone || lead.phone || "",
+          status: (messageTemplate === "rdv" ? "rdv" : "interesse") as PipelineStatus,
+          need: lead.category || "Prospect Google Maps",
+          budget: null,
+          notes: notesParts.join(" | "),
+          last_activity_at: new Date().toISOString(),
+          followup_count: 1,
+          followup_status: "pending" as const
+        }
+      ], true);
+
+      handleSendViaWhatsApp(lead);
+      setSelectedLeadForMessage(null);
+    } catch (e) {
+      console.error(e);
+      handleSendViaWhatsApp(lead);
+    } finally {
+      setIsSavingLeadToCrm(false);
+    }
   };
 
   return (
@@ -772,6 +870,15 @@ export function GoogleMapsScraper() {
                                 <span className="hidden sm:inline">Site</span>
                               </a>
                             )}
+                            <button
+                              type="button"
+                              onClick={() => handleOpenMessageModal(lead)}
+                              className="p-1.5 rounded-lg border border-emerald-500/40 bg-emerald-500/10 hover:bg-emerald-500/20 text-emerald-600 dark:text-emerald-400 text-[11px] font-semibold inline-flex items-center gap-1 transition-all cursor-pointer shadow-xs"
+                              title="Contacter ce prospect par message WhatsApp professionnel"
+                            >
+                              <MessageSquare className="h-3 w-3 text-emerald-500" />
+                              <span>Message</span>
+                            </button>
                           </div>
                         </td>
                       </tr>
@@ -779,6 +886,184 @@ export function GoogleMapsScraper() {
                   })}
                 </tbody>
               </table>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Modal de Prospection / Envoi de Message WhatsApp Professionnel */}
+      {selectedLeadForMessage && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-xs animate-in fade-in duration-200">
+          <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-3xl shadow-2xl max-w-2xl w-full overflow-hidden flex flex-col max-h-[92vh]">
+            {/* Header du Modal */}
+            <div className="px-6 py-5 bg-gradient-to-r from-emerald-600 to-teal-700 text-white flex items-start justify-between">
+              <div>
+                <div className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-white/20 text-white text-xs font-semibold mb-1">
+                  <Sparkles className="h-3.5 w-3.5" />
+                  Démarchage WhatsApp B2B
+                </div>
+                <h3 className="text-xl font-bold tracking-tight">
+                  Contacter {selectedLeadForMessage.name}
+                </h3>
+                <p className="text-xs text-emerald-100 mt-0.5">
+                  {[selectedLeadForMessage.category, selectedLeadForMessage.city].filter(Boolean).join(" • ") || "Prospect Google Maps"}
+                </p>
+              </div>
+              <button
+                type="button"
+                onClick={() => setSelectedLeadForMessage(null)}
+                className="p-1.5 rounded-full bg-white/10 hover:bg-white/20 text-white transition-colors cursor-pointer"
+                title="Fermer"
+              >
+                <X className="h-5 w-5" />
+              </button>
+            </div>
+
+            {/* Corps du Modal */}
+            <div className="p-6 overflow-y-auto space-y-4 text-slate-800 dark:text-slate-100 flex-1">
+              {/* Info Contact */}
+              <div className="flex flex-wrap items-center justify-between gap-3 p-3.5 rounded-2xl bg-slate-50 dark:bg-slate-800/60 border border-slate-200/80 dark:border-slate-700/60 text-xs">
+                <div className="flex items-center gap-2">
+                  <MessageCircle className="h-4 w-4 text-emerald-500" />
+                  <span className="text-slate-500 dark:text-slate-400">Destinataire WhatsApp :</span>
+                  <span className="font-mono font-bold text-slate-900 dark:text-white">
+                    {selectedLeadForMessage.normalizedPhone || selectedLeadForMessage.phone || (
+                      <span className="text-amber-500 italic">Pas de numéro détecté</span>
+                    )}
+                  </span>
+                </div>
+                {selectedLeadForMessage.address && (
+                  <div className="text-slate-500 dark:text-slate-400 truncate max-w-[260px]" title={selectedLeadForMessage.address}>
+                    📍 {selectedLeadForMessage.address}
+                  </div>
+                )}
+              </div>
+
+              {/* Sélecteur de Modèle de Message */}
+              <div>
+                <label className="block text-xs font-semibold uppercase tracking-wider text-slate-500 dark:text-slate-400 mb-2">
+                  Modèle de message professionnel
+                </label>
+                <div className="grid grid-cols-1 sm:grid-cols-3 gap-2">
+                  <button
+                    type="button"
+                    onClick={() => handleSelectTemplate("services")}
+                    className={`px-3 py-2.5 rounded-xl border text-xs font-semibold text-left transition-all cursor-pointer ${
+                      messageTemplate === "services"
+                        ? "border-emerald-500 bg-emerald-50/80 dark:bg-emerald-950/40 text-emerald-700 dark:text-emerald-300 ring-2 ring-emerald-500/20"
+                        : "border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-800"
+                    }`}
+                  >
+                    💼 Offre de services
+                    <p className="text-[10px] font-normal text-slate-500 dark:text-slate-400 mt-0.5">
+                      Proposer vos solutions & booster leur activité
+                    </p>
+                  </button>
+
+                  <button
+                    type="button"
+                    onClick={() => handleSelectTemplate("rdv")}
+                    className={`px-3 py-2.5 rounded-xl border text-xs font-semibold text-left transition-all cursor-pointer ${
+                      messageTemplate === "rdv"
+                        ? "border-emerald-500 bg-emerald-50/80 dark:bg-emerald-950/40 text-emerald-700 dark:text-emerald-300 ring-2 ring-emerald-500/20"
+                        : "border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-800"
+                    }`}
+                  >
+                    📅 Prise de RDV
+                    <p className="text-[10px] font-normal text-slate-500 dark:text-slate-400 mt-0.5">
+                      Proposer un échange rapide de 5-10 min
+                    </p>
+                  </button>
+
+                  <button
+                    type="button"
+                    onClick={() => handleSelectTemplate("partenariat")}
+                    className={`px-3 py-2.5 rounded-xl border text-xs font-semibold text-left transition-all cursor-pointer ${
+                      messageTemplate === "partenariat"
+                        ? "border-emerald-500 bg-emerald-50/80 dark:bg-emerald-950/40 text-emerald-700 dark:text-emerald-300 ring-2 ring-emerald-500/20"
+                        : "border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-800"
+                    }`}
+                  >
+                    🤝 Partenariat B2B
+                    <p className="text-[10px] font-normal text-slate-500 dark:text-slate-400 mt-0.5">
+                      Synergies & réseau professionnel
+                    </p>
+                  </button>
+                </div>
+              </div>
+
+              {/* Éditeur de Message */}
+              <div>
+                <div className="flex items-center justify-between mb-1.5">
+                  <label className="text-xs font-semibold uppercase tracking-wider text-slate-500 dark:text-slate-400">
+                    Texte du message (personnalisable)
+                  </label>
+                  <button
+                    type="button"
+                    onClick={handleCopyMessage}
+                    className="inline-flex items-center gap-1 text-xs text-slate-500 hover:text-emerald-600 dark:hover:text-emerald-400 cursor-pointer font-medium"
+                  >
+                    {copiedSuccess ? (
+                      <>
+                        <Check className="h-3.5 w-3.5 text-emerald-500" />
+                        <span className="text-emerald-600 dark:text-emerald-400 font-semibold">Copié !</span>
+                      </>
+                    ) : (
+                      <>
+                        <Copy className="h-3.5 w-3.5" />
+                        <span>Copier</span>
+                      </>
+                    )}
+                  </button>
+                </div>
+                <textarea
+                  value={messageText}
+                  onChange={(e) => setMessageText(e.target.value)}
+                  rows={8}
+                  className="w-full rounded-2xl border border-slate-200 dark:border-slate-700 bg-slate-50/50 dark:bg-slate-800/50 p-4 text-sm font-sans focus:outline-none focus:ring-2 focus:ring-emerald-500 dark:focus:ring-emerald-400 leading-relaxed resize-none text-slate-900 dark:text-white"
+                  placeholder="Écrivez votre message de prospection ici..."
+                />
+                <div className="flex items-center justify-between text-[11px] text-slate-400 mt-1">
+                  <span>✨ Personnalisé avec le nom de l'établissement et de votre entreprise</span>
+                  <span>{messageText.length} caractères</span>
+                </div>
+              </div>
+            </div>
+
+            {/* Pied du Modal */}
+            <div className="px-6 py-4 bg-slate-50 dark:bg-slate-800/50 border-t border-slate-200 dark:border-slate-700/80 flex flex-col sm:flex-row items-center justify-between gap-3">
+              <button
+                type="button"
+                onClick={() => setSelectedLeadForMessage(null)}
+                className="w-full sm:w-auto px-4 py-2.5 rounded-xl border border-slate-300 dark:border-slate-700 text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 text-xs font-semibold cursor-pointer transition-colors"
+              >
+                Annuler
+              </button>
+
+              <div className="w-full sm:w-auto flex flex-col sm:flex-row items-center gap-2">
+                <button
+                  type="button"
+                  onClick={() => handleSendViaWhatsApp(selectedLeadForMessage)}
+                  className="w-full sm:w-auto px-4 py-2.5 rounded-xl border border-emerald-500/50 bg-emerald-50 dark:bg-emerald-950/40 text-emerald-700 dark:text-emerald-300 hover:bg-emerald-100 dark:hover:bg-emerald-900/50 text-xs font-bold inline-flex items-center justify-center gap-1.5 cursor-pointer transition-colors shadow-xs"
+                >
+                  <MessageCircle className="h-4 w-4" />
+                  <span>Ouvrir WhatsApp</span>
+                </button>
+
+                <button
+                  type="button"
+                  disabled={isSavingLeadToCrm}
+                  onClick={() => handleImportAndSendWhatsApp(selectedLeadForMessage)}
+                  className="w-full sm:w-auto px-5 py-2.5 rounded-xl bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-700 hover:to-teal-700 text-white text-xs font-bold inline-flex items-center justify-center gap-2 cursor-pointer transition-all shadow-md hover:shadow-lg disabled:opacity-50"
+                >
+                  {isSavingLeadToCrm ? (
+                    <RefreshCw className="h-4 w-4 animate-spin" />
+                  ) : (
+                    <Send className="h-4 w-4" />
+                  )}
+                  <span>Enregistrer au CRM & Envoyer</span>
+                </button>
+              </div>
             </div>
           </div>
         </div>
