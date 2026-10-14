@@ -21,7 +21,7 @@ export const INITIAL_BUSINESS: Business = {
   wa_verify_status: "unverified",
   google_calendar_connected: true,
   google_calendar_id: "primary",
-  google_calendar_email: "contact@welma-digital.sn",
+  google_calendar_email: "contact@welmadigital.com",
   google_meet_enabled: true,
   google_appointment_link: "https://calendar.google.com/calendar/u/0/appointments/schedules/AcZssZ0...",
   default_meeting_duration: 45,

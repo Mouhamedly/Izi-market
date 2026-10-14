@@ -116,9 +116,10 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
             const parsed = JSON.parse(savedBiz);
             if (parsed.name?.includes("Teranga Immo")) {
               parsed.name = "Welma Digital";
-              if (parsed.google_calendar_email?.includes("teranga-immo")) {
-                parsed.google_calendar_email = "contact@welma-digital.sn";
-              }
+              localStorage.setItem("izi_business", JSON.stringify(parsed));
+            }
+            if (parsed.google_calendar_email?.includes("teranga-immo") || parsed.google_calendar_email === "contact@welma-digital.sn") {
+              parsed.google_calendar_email = "contact@welmadigital.com";
               localStorage.setItem("izi_business", JSON.stringify(parsed));
             }
             setBusiness(parsed);

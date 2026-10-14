@@ -193,7 +193,7 @@ export default function RegisterPage() {
                 <input
                   type="email"
                   required
-                  placeholder="contact@welma-digital.sn"
+                  placeholder="contact@welmadigital.com"
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
                   className="w-full text-xs pl-10 pr-4 py-3 rounded-xl bg-slate-950 border border-slate-800 text-white placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-emerald-500"

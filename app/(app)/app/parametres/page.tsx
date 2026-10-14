@@ -57,7 +57,7 @@ export default function SettingsPage() {
   // Champs Google Agenda
   const [googleCalendarConnected, setGoogleCalendarConnected] = useState(business.google_calendar_connected ?? true);
   const [googleCalendarId, setGoogleCalendarId] = useState(business.google_calendar_id || "primary");
-  const [googleCalendarEmail, setGoogleCalendarEmail] = useState(business.google_calendar_email || "contact@welma-digital.sn");
+  const [googleCalendarEmail, setGoogleCalendarEmail] = useState(business.google_calendar_email || "contact@welmadigital.com");
   const [googleMeetEnabled, setGoogleMeetEnabled] = useState(business.google_meet_enabled ?? true);
   const [googleAppointmentLink, setGoogleAppointmentLink] = useState(business.google_appointment_link || "");
   const [meetingDuration, setMeetingDuration] = useState(String(business.default_meeting_duration || 45));
@@ -1183,10 +1183,10 @@ export default function SettingsPage() {
                   </button>
                   <button
                     type="button"
-                    onClick={() => setTempGmailInput("contact@welma-digital.sn")}
+                    onClick={() => setTempGmailInput("contact@welmadigital.com")}
                     className="px-2.5 py-1.5 rounded-lg text-xs bg-slate-800 hover:bg-slate-700 text-slate-200 border border-slate-700 cursor-pointer"
                   >
-                    contact@welma-digital.sn
+                    contact@welmadigital.com
                   </button>
                 </div>
               </div>

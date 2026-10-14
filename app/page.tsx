@@ -1320,7 +1320,7 @@ export default function LandingPage() {
                 </div>
 
                 <a
-                  href="https://wa.me/221774567890?text=Bonjour,%20je%20souhaite%20des%20informations%20sur%20l'offre%20Agence%20IZI%20Market."
+                  href="https://wa.me/221771116966?text=Bonjour,%20je%20souhaite%20des%20informations%20sur%20l'offre%20Agence%20IZI%20Market."
                   target="_blank"
                   rel="noreferrer"
                   className="w-full py-3.5 rounded-xl text-center text-xs font-bold bg-slate-800 hover:bg-slate-700 text-white transition-all cursor-pointer block"
@@ -1423,7 +1423,7 @@ export default function LandingPage() {
               </Link>
 
               <a
-                href="https://wa.me/221774567890?text=Bonjour%20IZI%20Market,%20j'aimerais%20poser%20une%20question%20à%20un%20conseiller%20avant%20de%20démarrer."
+                href="https://wa.me/221771116966?text=Bonjour%20IZI%20Market,%20j'aimerais%20poser%20une%20question%20à%20un%20conseiller%20avant%20de%20démarrer."
                 target="_blank"
                 rel="noreferrer"
                 className="w-full sm:w-auto inline-flex items-center justify-center gap-2 px-7 py-4 rounded-2xl bg-emerald-600/20 hover:bg-emerald-600/30 text-emerald-300 border border-emerald-500/40 text-sm font-bold transition-all cursor-pointer"
@@ -1478,11 +1478,11 @@ export default function LandingPage() {
                 <ul className="space-y-2 text-slate-400">
                   <li className="flex items-center gap-2">
                     <Phone className="h-3.5 w-3.5 text-emerald-400 shrink-0" />
-                    <span>+221 77 456 78 90</span>
+                    <span>+221 77 111 69 66</span>
                   </li>
                   <li className="flex items-center gap-2">
                     <Mail className="h-3.5 w-3.5 text-emerald-400 shrink-0" />
-                    <span>contact@izimarket.sn</span>
+                    <span>contact@welmadigital.com</span>
                   </li>
                   <li className="flex items-center gap-2">
                     <MapPin className="h-3.5 w-3.5 text-emerald-400 shrink-0" />
@@ -1490,7 +1490,7 @@ export default function LandingPage() {
                   </li>
                   <li className="pt-1">
                     <a
-                      href="https://wa.me/221774567890?text=Bonjour,%20j'ai%20besoin%20d'aide%20sur%20IZI%20Market."
+                      href="https://wa.me/221771116966?text=Bonjour,%20j'ai%20besoin%20d'aide%20sur%20IZI%20Market."
                       target="_blank"
                       rel="noreferrer"
                       className="text-emerald-400 hover:underline flex items-center gap-1 font-semibold"
@@ -1546,7 +1546,7 @@ export default function LandingPage() {
 
           {/* Bouton WhatsApp Flottant */}
           <a
-            href="https://wa.me/221774567890?text=Bonjour,%20je%20découvre%20IZI%20Market%20et%20j'aimerais%20en%20savoir%20plus%20sur%20vos%20services."
+            href="https://wa.me/221771116966?text=Bonjour,%20je%20découvre%20IZI%20Market%20et%20j'aimerais%20en%20savoir%20plus%20sur%20vos%20services."
             target="_blank"
             rel="noreferrer"
             aria-label="Contacter sur WhatsApp"

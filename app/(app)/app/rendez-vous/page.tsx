@@ -224,7 +224,7 @@ export default function AppointmentsPage() {
               <span className="h-2 w-2 rounded-full bg-emerald-400"></span>
             </div>
             <p className="text-[11px] text-slate-400 mt-0.5">
-              Compte : <span className="text-emerald-300 font-mono">{business.google_calendar_email || "contact@welma-digital.sn"}</span> • Calendrier principal ({business.google_calendar_id || "primary"}) • Salons Google Meet automatiques
+              Compte : <span className="text-emerald-300 font-mono">{business.google_calendar_email || "contact@welmadigital.com"}</span> • Calendrier principal ({business.google_calendar_id || "primary"}) • Salons Google Meet automatiques
             </p>
           </div>
         </div>
