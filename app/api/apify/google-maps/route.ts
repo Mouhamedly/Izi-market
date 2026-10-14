@@ -200,6 +200,13 @@ export async function GET(req: Request) {
       const rawPhone = item.phone || item.phoneUnformatted || "";
       const normalizedPhone = normalizePhoneNumber(rawPhone);
       const category = item.categoryName || (Array.isArray(item.categories) && item.categories[0]) || "Commerce";
+      const rawEmail =
+        item.email ||
+        (Array.isArray(item.emails) && item.emails[0]) ||
+        item.contactEmail ||
+        (item.additionalInfo && item.additionalInfo.email) ||
+        "";
+      const cleanEmail = typeof rawEmail === "string" ? rawEmail.trim() : "";
       
       return {
         id: item.placeId || item.cid || `lead_${idx}_${Date.now()}`,
@@ -208,6 +215,8 @@ export async function GET(req: Request) {
         phone: rawPhone,
         normalizedPhone,
         hasPhone: Boolean(rawPhone && rawPhone.trim().length >= 6),
+        email: cleanEmail,
+        hasEmail: Boolean(cleanEmail && cleanEmail.includes("@")),
         address: item.address || "",
         city: item.city || "",
         countryCode: item.countryCode || "",

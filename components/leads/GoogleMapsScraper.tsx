@@ -18,7 +18,8 @@ import {
   MessageSquare,
   Send,
   Copy,
-  Sparkles
+  Sparkles,
+  Mail
 } from "lucide-react";
 import { Contact, PipelineStatus } from "@/types/database";
 
@@ -29,6 +30,8 @@ interface ScrapedLead {
   phone: string;
   normalizedPhone: string;
   hasPhone: boolean;
+  email?: string;
+  hasEmail?: boolean;
   address: string;
   city: string;
   countryCode: string;
@@ -78,10 +81,14 @@ export function GoogleMapsScraper() {
     total: number;
   } | null>(null);
 
-  // Modal de message / démarchage WhatsApp professionnel
+  // Modal de prospection multi-canal (WhatsApp & Email)
   const [selectedLeadForMessage, setSelectedLeadForMessage] = useState<ScrapedLead | null>(null);
+  const [outreachChannel, setOutreachChannel] = useState<"whatsapp" | "email">("whatsapp");
   const [messageTemplate, setMessageTemplate] = useState<"services" | "partenariat" | "rdv">("services");
-  const [messageText, setMessageText] = useState("");
+  const [whatsappText, setWhatsappText] = useState("");
+  const [emailSubject, setEmailSubject] = useState("");
+  const [emailBody, setEmailBody] = useState("");
+  const [emailRecipient, setEmailRecipient] = useState("");
   const [copiedSuccess, setCopiedSuccess] = useState(false);
   const [isSavingLeadToCrm, setIsSavingLeadToCrm] = useState(false);
 
@@ -299,6 +306,7 @@ export function GoogleMapsScraper() {
       "Catégorie",
       "Téléphone Formaté",
       "Téléphone Brut",
+      "Email",
       "Adresse",
       "Ville",
       "Note",
@@ -312,6 +320,7 @@ export function GoogleMapsScraper() {
       `"${(r.category || "").replace(/"/g, '""')}"`,
       `"${(r.normalizedPhone || "").replace(/"/g, '""')}"`,
       `"${(r.phone || "").replace(/"/g, '""')}"`,
+      `"${(r.email || "").replace(/"/g, '""')}"`,
       `"${(r.address || "").replace(/"/g, '""')}"`,
       `"${(r.city || "").replace(/"/g, '""')}"`,
       `"${r.totalScore ?? ""}"`,
@@ -331,8 +340,8 @@ export function GoogleMapsScraper() {
     document.body.removeChild(link);
   };
 
-  // Générateur de message professionnel de démarchage
-  const buildOutreachMessage = (lead: ScrapedLead, type: "services" | "partenariat" | "rdv") => {
+  // Générateur de message WhatsApp
+  const buildWhatsAppMessage = (lead: ScrapedLead, type: "services" | "partenariat" | "rdv") => {
     const bizName = business?.name || "Notre entreprise";
     const leadCategory = lead.category || "votre secteur d'activité";
     const leadCity = lead.city || "votre zone";
@@ -349,22 +358,77 @@ export function GoogleMapsScraper() {
     return `Bonjour ${lead.name},\n\nNous développons actuellement un réseau de partenaires de confiance sur ${leadCity} et le profil de votre établissement (${leadCategory}) a particulièrement retenu notre attention.\n\nPourrions-nous échanger brièvement afin d'étudier de potentielles opportunités de collaboration et de synergies commerciales entre nos deux structures ?\n\nAu plaisir d'échanger avec vous,\n${bizName}`;
   };
 
-  const handleOpenMessageModal = (lead: ScrapedLead) => {
+  // Générateur d'email professionnel (Objet + Corps)
+  const buildEmailContent = (lead: ScrapedLead, type: "services" | "partenariat" | "rdv") => {
+    const bizName = business?.name || "Notre entreprise";
+    const leadCategory = lead.category || "votre secteur d'activité";
+    const leadCity = lead.city || "votre zone";
+
+    if (type === "services") {
+      return {
+        subject: `Opportunité de croissance pour ${lead.name} — ${bizName}`,
+        body: `Bonjour l'équipe de ${lead.name},\n\nJ'ai eu le plaisir de découvrir votre activité dans le secteur "${leadCategory}" à ${leadCity}.\n\nChez ${bizName}, nous accompagnons les entreprises pour développer leur visibilité, attirer plus de clients qualifiés et automatiser leur suivi commercial.\n\nAu vu de votre positionnement, nous avons identifié plusieurs axes concrets qui pourraient vous permettre d'accélérer votre croissance et de gagner un temps précieux au quotidien.\n\nSeriez-vous disponible pour un court échange téléphonique de 5 à 10 minutes cette semaine afin d'en discuter ?\n\nJe reste à votre entière disposition.\n\nBien cordialement,\nL'équipe ${bizName}`
+      };
+    }
+
+    if (type === "rdv") {
+      return {
+        subject: `Proposition d'échange téléphonique — ${lead.name} & ${bizName}`,
+        body: `Bonjour,\n\nJe m'adresse à la direction ou au responsable commercial de ${lead.name}.\n\nNous suivons avec intérêt les entreprises dynamiques du secteur "${leadCategory}" à ${leadCity}, et nous aimerions vous présenter des opportunités concrètes adaptées à votre activité.\n\nAuriez-vous une disponibilité de 10 minutes pour un échange téléphonique cette semaine ?\n\nN'hésitez pas à m'indiquer le jour et le créneau qui vous conviendraient le mieux (matin ou après-midi).\n\nBien cordialement,\n${bizName}`
+      };
+    }
+
+    // Partenariat
+    return {
+      subject: `Opportunité de partenariat B2B — ${bizName} & ${lead.name}`,
+      body: `Bonjour ${lead.name},\n\nNous développons actuellement un réseau de partenariats stratégiques avec les acteurs clés dans le domaine "${leadCategory}" à ${leadCity}.\n\nNous serions ravis d'étudier avec vous de possibles synergies commerciales mutuellement profitables (recommandations croisées, offres complémentaires).\n\nSeriez-vous ouvert(e) à un premier échange d'introduction cette semaine ?\n\nAu plaisir de vous lire,\n${bizName}`
+    };
+  };
+
+  const handleOpenMessageModal = (lead: ScrapedLead, initialChannel: "whatsapp" | "email" = "whatsapp") => {
     setSelectedLeadForMessage(lead);
+    setOutreachChannel(initialChannel);
     setMessageTemplate("services");
-    setMessageText(buildOutreachMessage(lead, "services"));
+
+    // Initialiser le texte WhatsApp
+    setWhatsappText(buildWhatsAppMessage(lead, "services"));
+
+    // Initialiser l'objet et corps email
+    const emailData = buildEmailContent(lead, "services");
+    setEmailSubject(emailData.subject);
+    setEmailBody(emailData.body);
+
+    // Initialiser le destinataire email
+    let initialEmail = lead.email || "";
+    if (!initialEmail && lead.website) {
+      try {
+        const cleanHost = lead.website.replace(/^https?:\/\//i, "").replace(/^www\./i, "").split("/")[0];
+        if (cleanHost && cleanHost.includes(".")) {
+          initialEmail = `contact@${cleanHost}`;
+        }
+      } catch {}
+    }
+    setEmailRecipient(initialEmail);
     setCopiedSuccess(false);
   };
 
   const handleSelectTemplate = (type: "services" | "partenariat" | "rdv") => {
     if (!selectedLeadForMessage) return;
     setMessageTemplate(type);
-    setMessageText(buildOutreachMessage(selectedLeadForMessage, type));
+    setWhatsappText(buildWhatsAppMessage(selectedLeadForMessage, type));
+    const emailData = buildEmailContent(selectedLeadForMessage, type);
+    setEmailSubject(emailData.subject);
+    setEmailBody(emailData.body);
   };
 
-  const handleCopyMessage = async () => {
+  const handleCopyCurrentContent = async () => {
     try {
-      await navigator.clipboard.writeText(messageText);
+      if (outreachChannel === "whatsapp") {
+        await navigator.clipboard.writeText(whatsappText);
+      } else {
+        const fullEmail = `Objet : ${emailSubject}\n\n${emailBody}`;
+        await navigator.clipboard.writeText(fullEmail);
+      }
       setCopiedSuccess(true);
       setTimeout(() => setCopiedSuccess(false), 3000);
     } catch {}
@@ -377,27 +441,39 @@ export function GoogleMapsScraper() {
       alert("Aucun numéro de téléphone disponible pour ce prospect.");
       return;
     }
-    const url = `https://wa.me/${digits}?text=${encodeURIComponent(messageText)}`;
+    const url = `https://wa.me/${digits}?text=${encodeURIComponent(whatsappText)}`;
     window.open(url, "_blank");
   };
 
-  const handleImportAndSendWhatsApp = async (lead: ScrapedLead) => {
+  const handleSendViaEmail = (lead: ScrapedLead) => {
+    const recipient = emailRecipient.trim();
+    if (!recipient) {
+      alert("Veuillez renseigner une adresse email pour ce prospect.");
+      return;
+    }
+    const mailtoUrl = `mailto:${encodeURIComponent(recipient)}?subject=${encodeURIComponent(emailSubject)}&body=${encodeURIComponent(emailBody)}`;
+    window.location.href = mailtoUrl;
+  };
+
+  const handleImportAndSend = async (lead: ScrapedLead) => {
     setIsSavingLeadToCrm(true);
     try {
+      const isWa = outreachChannel === "whatsapp";
       const notesParts = [
-        `[Scraper Google Maps - Démarché par Message WhatsApp]`,
+        isWa ? `[Scraper Google Maps - Démarchage WhatsApp]` : `[Scraper Google Maps - Démarchage Email]`,
+        emailRecipient ? `Email : ${emailRecipient}` : null,
         lead.category ? `Catégorie : ${lead.category}` : null,
         lead.address ? `Adresse : ${lead.address}` : null,
         lead.city ? `Ville : ${lead.city}` : null,
         lead.totalScore ? `Note : ${lead.totalScore}/5 (${lead.reviewsCount} avis)` : null,
         lead.website ? `Site web : ${lead.website}` : null,
-        `Message envoyé : "${messageText.slice(0, 100)}..."`
+        isWa ? `Message WhatsApp : "${whatsappText.slice(0, 100)}..."` : `Objet Email : "${emailSubject}"`
       ].filter(Boolean);
 
       await importContacts([
         {
           name: lead.name || "Prospect Google Maps",
-          wa_phone: lead.normalizedPhone || lead.phone || "",
+          wa_phone: lead.normalizedPhone || lead.phone || emailRecipient || "Non renseigné",
           status: (messageTemplate === "rdv" ? "rdv" : "interesse") as PipelineStatus,
           need: lead.category || "Prospect Google Maps",
           budget: null,
@@ -408,11 +484,19 @@ export function GoogleMapsScraper() {
         }
       ], true);
 
-      handleSendViaWhatsApp(lead);
+      if (isWa) {
+        handleSendViaWhatsApp(lead);
+      } else {
+        handleSendViaEmail(lead);
+      }
       setSelectedLeadForMessage(null);
     } catch (e) {
       console.error(e);
-      handleSendViaWhatsApp(lead);
+      if (outreachChannel === "whatsapp") {
+        handleSendViaWhatsApp(lead);
+      } else {
+        handleSendViaEmail(lead);
+      }
     } finally {
       setIsSavingLeadToCrm(false);
     }
@@ -799,25 +883,30 @@ export function GoogleMapsScraper() {
                           </div>
                         </td>
 
-                        {/* Téléphone */}
+                        {/* Téléphone & Email */}
                         <td className="p-3.5">
                           {lead.hasPhone ? (
                             <div className="flex items-center gap-2">
                               <span className="font-mono font-bold text-slate-800 dark:text-slate-200">
                                 {lead.normalizedPhone || lead.phone}
                               </span>
-                              <a
-                                href={`https://wa.me/${(lead.normalizedPhone || lead.phone).replace(/\D/g, "")}`}
-                                target="_blank"
-                                rel="noreferrer"
-                                className="p-1 rounded-md text-emerald-600 hover:bg-emerald-50 dark:hover:bg-emerald-950/60"
-                                title="Ouvrir discussion WhatsApp"
+                              <button
+                                type="button"
+                                onClick={() => handleOpenMessageModal(lead, "whatsapp")}
+                                className="p-1 rounded-md text-emerald-600 hover:bg-emerald-50 dark:hover:bg-emerald-950/60 cursor-pointer"
+                                title="Préparer message WhatsApp"
                               >
                                 <MessageCircle className="h-3.5 w-3.5" />
-                              </a>
+                              </button>
                             </div>
                           ) : (
                             <span className="text-[11px] text-slate-400 italic">Non renseigné</span>
+                          )}
+                          {lead.email && (
+                            <div className="text-[11px] text-slate-500 dark:text-slate-400 truncate max-w-[170px] mt-0.5 flex items-center gap-1" title={lead.email}>
+                              <Mail className="h-3 w-3 text-sky-500 shrink-0" />
+                              <span>{lead.email}</span>
+                            </div>
                           )}
                         </td>
 
@@ -872,12 +961,21 @@ export function GoogleMapsScraper() {
                             )}
                             <button
                               type="button"
-                              onClick={() => handleOpenMessageModal(lead)}
+                              onClick={() => handleOpenMessageModal(lead, "whatsapp")}
                               className="p-1.5 rounded-lg border border-emerald-500/40 bg-emerald-500/10 hover:bg-emerald-500/20 text-emerald-600 dark:text-emerald-400 text-[11px] font-semibold inline-flex items-center gap-1 transition-all cursor-pointer shadow-xs"
                               title="Contacter ce prospect par message WhatsApp professionnel"
                             >
                               <MessageSquare className="h-3 w-3 text-emerald-500" />
-                              <span>Message</span>
+                              <span>WhatsApp</span>
+                            </button>
+                            <button
+                              type="button"
+                              onClick={() => handleOpenMessageModal(lead, "email")}
+                              className="p-1.5 rounded-lg border border-sky-500/40 bg-sky-500/10 hover:bg-sky-500/20 text-sky-600 dark:text-sky-400 text-[11px] font-semibold inline-flex items-center gap-1 transition-all cursor-pointer shadow-xs"
+                              title="Contacter ce prospect par Email professionnel"
+                            >
+                              <Mail className="h-3 w-3 text-sky-500" />
+                              <span>Email</span>
                             </button>
                           </div>
                         </td>
@@ -891,21 +989,27 @@ export function GoogleMapsScraper() {
         </div>
       )}
 
-      {/* Modal de Prospection / Envoi de Message WhatsApp Professionnel */}
+      {/* Modal de Prospection Multi-Canal (WhatsApp & Email) */}
       {selectedLeadForMessage && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-xs animate-in fade-in duration-200">
           <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-3xl shadow-2xl max-w-2xl w-full overflow-hidden flex flex-col max-h-[92vh]">
-            {/* Header du Modal */}
-            <div className="px-6 py-5 bg-gradient-to-r from-emerald-600 to-teal-700 text-white flex items-start justify-between">
+            {/* Header du Modal avec couleur adaptée au canal */}
+            <div
+              className={`px-6 py-5 text-white flex items-start justify-between transition-colors ${
+                outreachChannel === "whatsapp"
+                  ? "bg-gradient-to-r from-emerald-600 to-teal-700"
+                  : "bg-gradient-to-r from-sky-600 to-indigo-700"
+              }`}
+            >
               <div>
                 <div className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-white/20 text-white text-xs font-semibold mb-1">
                   <Sparkles className="h-3.5 w-3.5" />
-                  Démarchage WhatsApp B2B
+                  Prospection Commerciale B2B
                 </div>
                 <h3 className="text-xl font-bold tracking-tight">
                   Contacter {selectedLeadForMessage.name}
                 </h3>
-                <p className="text-xs text-emerald-100 mt-0.5">
+                <p className="text-xs text-white/80 mt-0.5">
                   {[selectedLeadForMessage.category, selectedLeadForMessage.city].filter(Boolean).join(" • ") || "Prospect Google Maps"}
                 </p>
               </div>
@@ -921,28 +1025,88 @@ export function GoogleMapsScraper() {
 
             {/* Corps du Modal */}
             <div className="p-6 overflow-y-auto space-y-4 text-slate-800 dark:text-slate-100 flex-1">
-              {/* Info Contact */}
-              <div className="flex flex-wrap items-center justify-between gap-3 p-3.5 rounded-2xl bg-slate-50 dark:bg-slate-800/60 border border-slate-200/80 dark:border-slate-700/60 text-xs">
-                <div className="flex items-center gap-2">
-                  <MessageCircle className="h-4 w-4 text-emerald-500" />
-                  <span className="text-slate-500 dark:text-slate-400">Destinataire WhatsApp :</span>
-                  <span className="font-mono font-bold text-slate-900 dark:text-white">
-                    {selectedLeadForMessage.normalizedPhone || selectedLeadForMessage.phone || (
-                      <span className="text-amber-500 italic">Pas de numéro détecté</span>
-                    )}
-                  </span>
+              {/* Sélecteur de Canal : WhatsApp vs Email */}
+              <div>
+                <label className="block text-xs font-semibold uppercase tracking-wider text-slate-500 dark:text-slate-400 mb-2">
+                  Canal de contact
+                </label>
+                <div className="grid grid-cols-2 gap-2 bg-slate-100 dark:bg-slate-800/80 p-1 rounded-2xl border border-slate-200 dark:border-slate-700">
+                  <button
+                    type="button"
+                    onClick={() => setOutreachChannel("whatsapp")}
+                    className={`flex items-center justify-center gap-2 py-2.5 px-4 rounded-xl font-bold text-xs transition-all cursor-pointer ${
+                      outreachChannel === "whatsapp"
+                        ? "bg-emerald-600 text-white shadow-md shadow-emerald-600/20"
+                        : "text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white"
+                    }`}
+                  >
+                    <MessageCircle className="h-4 w-4" />
+                    <span>WhatsApp</span>
+                  </button>
+
+                  <button
+                    type="button"
+                    onClick={() => setOutreachChannel("email")}
+                    className={`flex items-center justify-center gap-2 py-2.5 px-4 rounded-xl font-bold text-xs transition-all cursor-pointer ${
+                      outreachChannel === "email"
+                        ? "bg-sky-600 text-white shadow-md shadow-sky-600/20"
+                        : "text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white"
+                    }`}
+                  >
+                    <Mail className="h-4 w-4" />
+                    <span>Email Professionnel</span>
+                  </button>
                 </div>
-                {selectedLeadForMessage.address && (
-                  <div className="text-slate-500 dark:text-slate-400 truncate max-w-[260px]" title={selectedLeadForMessage.address}>
-                    📍 {selectedLeadForMessage.address}
-                  </div>
-                )}
               </div>
+
+              {/* Détails du Destinataire selon le canal */}
+              {outreachChannel === "whatsapp" ? (
+                <div className="flex flex-wrap items-center justify-between gap-3 p-3.5 rounded-2xl bg-emerald-50/60 dark:bg-emerald-950/20 border border-emerald-200/80 dark:border-emerald-800/40 text-xs">
+                  <div className="flex items-center gap-2">
+                    <MessageCircle className="h-4 w-4 text-emerald-600 dark:text-emerald-400" />
+                    <span className="text-slate-600 dark:text-slate-300">Numéro WhatsApp :</span>
+                    <span className="font-mono font-bold text-slate-900 dark:text-white">
+                      {selectedLeadForMessage.normalizedPhone || selectedLeadForMessage.phone || (
+                        <span className="text-amber-500 italic">Pas de numéro détecté</span>
+                      )}
+                    </span>
+                  </div>
+                  {selectedLeadForMessage.city && (
+                    <span className="text-slate-500 dark:text-slate-400">
+                      📍 {selectedLeadForMessage.city}
+                    </span>
+                  )}
+                </div>
+              ) : (
+                <div className="p-3.5 rounded-2xl bg-sky-50/60 dark:bg-sky-950/20 border border-sky-200/80 dark:border-sky-800/40 space-y-2 text-xs">
+                  <div className="flex items-center gap-2 text-slate-600 dark:text-slate-300">
+                    <Mail className="h-4 w-4 text-sky-600 dark:text-sky-400 shrink-0" />
+                    <label htmlFor="emailRecipientInput" className="font-semibold">
+                      Adresse email du destinataire :
+                    </label>
+                  </div>
+                  <input
+                    id="emailRecipientInput"
+                    type="email"
+                    value={emailRecipient}
+                    onChange={(e) => setEmailRecipient(e.target.value)}
+                    placeholder="contact@entreprise.com ou direction@..."
+                    className="w-full px-3 py-2 rounded-xl border border-sky-300 dark:border-sky-700 bg-white dark:bg-slate-900 text-xs font-mono text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-sky-500"
+                  />
+                  <p className="text-[10px] text-slate-500 dark:text-slate-400">
+                    {selectedLeadForMessage.email
+                      ? "✓ Adresse email détectée automatiquement sur la fiche"
+                      : selectedLeadForMessage.website
+                      ? `💡 Pré-rempli avec le nom de domaine (${selectedLeadForMessage.website}). Modifiable à volonté.`
+                      : "Saisissez l'adresse email de contact du prospect."}
+                  </p>
+                </div>
+              )}
 
               {/* Sélecteur de Modèle de Message */}
               <div>
                 <label className="block text-xs font-semibold uppercase tracking-wider text-slate-500 dark:text-slate-400 mb-2">
-                  Modèle de message professionnel
+                  Objectif / Modèle de démarchage
                 </label>
                 <div className="grid grid-cols-1 sm:grid-cols-3 gap-2">
                   <button
@@ -950,13 +1114,15 @@ export function GoogleMapsScraper() {
                     onClick={() => handleSelectTemplate("services")}
                     className={`px-3 py-2.5 rounded-xl border text-xs font-semibold text-left transition-all cursor-pointer ${
                       messageTemplate === "services"
-                        ? "border-emerald-500 bg-emerald-50/80 dark:bg-emerald-950/40 text-emerald-700 dark:text-emerald-300 ring-2 ring-emerald-500/20"
+                        ? outreachChannel === "whatsapp"
+                          ? "border-emerald-500 bg-emerald-50/80 dark:bg-emerald-950/40 text-emerald-700 dark:text-emerald-300 ring-2 ring-emerald-500/20"
+                          : "border-sky-500 bg-sky-50/80 dark:bg-sky-950/40 text-sky-700 dark:text-sky-300 ring-2 ring-sky-500/20"
                         : "border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-800"
                     }`}
                   >
                     💼 Offre de services
                     <p className="text-[10px] font-normal text-slate-500 dark:text-slate-400 mt-0.5">
-                      Proposer vos solutions & booster leur activité
+                      Proposer vos solutions & accélérer leur activité
                     </p>
                   </button>
 
@@ -965,7 +1131,9 @@ export function GoogleMapsScraper() {
                     onClick={() => handleSelectTemplate("rdv")}
                     className={`px-3 py-2.5 rounded-xl border text-xs font-semibold text-left transition-all cursor-pointer ${
                       messageTemplate === "rdv"
-                        ? "border-emerald-500 bg-emerald-50/80 dark:bg-emerald-950/40 text-emerald-700 dark:text-emerald-300 ring-2 ring-emerald-500/20"
+                        ? outreachChannel === "whatsapp"
+                          ? "border-emerald-500 bg-emerald-50/80 dark:bg-emerald-950/40 text-emerald-700 dark:text-emerald-300 ring-2 ring-emerald-500/20"
+                          : "border-sky-500 bg-sky-50/80 dark:bg-sky-950/40 text-sky-700 dark:text-sky-300 ring-2 ring-sky-500/20"
                         : "border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-800"
                     }`}
                   >
@@ -980,7 +1148,9 @@ export function GoogleMapsScraper() {
                     onClick={() => handleSelectTemplate("partenariat")}
                     className={`px-3 py-2.5 rounded-xl border text-xs font-semibold text-left transition-all cursor-pointer ${
                       messageTemplate === "partenariat"
-                        ? "border-emerald-500 bg-emerald-50/80 dark:bg-emerald-950/40 text-emerald-700 dark:text-emerald-300 ring-2 ring-emerald-500/20"
+                        ? outreachChannel === "whatsapp"
+                          ? "border-emerald-500 bg-emerald-50/80 dark:bg-emerald-950/40 text-emerald-700 dark:text-emerald-300 ring-2 ring-emerald-500/20"
+                          : "border-sky-500 bg-sky-50/80 dark:bg-sky-950/40 text-sky-700 dark:text-sky-300 ring-2 ring-sky-500/20"
                         : "border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-800"
                     }`}
                   >
@@ -992,45 +1162,98 @@ export function GoogleMapsScraper() {
                 </div>
               </div>
 
-              {/* Éditeur de Message */}
-              <div>
-                <div className="flex items-center justify-between mb-1.5">
-                  <label className="text-xs font-semibold uppercase tracking-wider text-slate-500 dark:text-slate-400">
-                    Texte du message (personnalisable)
-                  </label>
-                  <button
-                    type="button"
-                    onClick={handleCopyMessage}
-                    className="inline-flex items-center gap-1 text-xs text-slate-500 hover:text-emerald-600 dark:hover:text-emerald-400 cursor-pointer font-medium"
-                  >
-                    {copiedSuccess ? (
-                      <>
-                        <Check className="h-3.5 w-3.5 text-emerald-500" />
-                        <span className="text-emerald-600 dark:text-emerald-400 font-semibold">Copié !</span>
-                      </>
-                    ) : (
-                      <>
-                        <Copy className="h-3.5 w-3.5" />
-                        <span>Copier</span>
-                      </>
-                    )}
-                  </button>
+              {/* Éditeur de Contenu (WhatsApp ou Email) */}
+              {outreachChannel === "whatsapp" ? (
+                <div>
+                  <div className="flex items-center justify-between mb-1.5">
+                    <label className="text-xs font-semibold uppercase tracking-wider text-slate-500 dark:text-slate-400">
+                      Message WhatsApp (personnalisable)
+                    </label>
+                    <button
+                      type="button"
+                      onClick={handleCopyCurrentContent}
+                      className="inline-flex items-center gap-1 text-xs text-slate-500 hover:text-emerald-600 dark:hover:text-emerald-400 cursor-pointer font-medium"
+                    >
+                      {copiedSuccess ? (
+                        <>
+                          <Check className="h-3.5 w-3.5 text-emerald-500" />
+                          <span className="text-emerald-600 dark:text-emerald-400 font-semibold">Copié !</span>
+                        </>
+                      ) : (
+                        <>
+                          <Copy className="h-3.5 w-3.5" />
+                          <span>Copier</span>
+                        </>
+                      )}
+                    </button>
+                  </div>
+                  <textarea
+                    value={whatsappText}
+                    onChange={(e) => setWhatsappText(e.target.value)}
+                    rows={8}
+                    className="w-full rounded-2xl border border-slate-200 dark:border-slate-700 bg-slate-50/50 dark:bg-slate-800/50 p-4 text-sm font-sans focus:outline-none focus:ring-2 focus:ring-emerald-500 dark:focus:ring-emerald-400 leading-relaxed resize-none text-slate-900 dark:text-white"
+                    placeholder="Écrivez votre message WhatsApp..."
+                  />
+                  <div className="flex items-center justify-between text-[11px] text-slate-400 mt-1">
+                    <span>✨ Personnalisé avec le nom du prospect et de votre entreprise</span>
+                    <span>{whatsappText.length} caractères</span>
+                  </div>
                 </div>
-                <textarea
-                  value={messageText}
-                  onChange={(e) => setMessageText(e.target.value)}
-                  rows={8}
-                  className="w-full rounded-2xl border border-slate-200 dark:border-slate-700 bg-slate-50/50 dark:bg-slate-800/50 p-4 text-sm font-sans focus:outline-none focus:ring-2 focus:ring-emerald-500 dark:focus:ring-emerald-400 leading-relaxed resize-none text-slate-900 dark:text-white"
-                  placeholder="Écrivez votre message de prospection ici..."
-                />
-                <div className="flex items-center justify-between text-[11px] text-slate-400 mt-1">
-                  <span>✨ Personnalisé avec le nom de l'établissement et de votre entreprise</span>
-                  <span>{messageText.length} caractères</span>
+              ) : (
+                <div className="space-y-3">
+                  <div>
+                    <label className="block text-xs font-semibold uppercase tracking-wider text-slate-500 dark:text-slate-400 mb-1">
+                      Objet de l'email
+                    </label>
+                    <input
+                      type="text"
+                      value={emailSubject}
+                      onChange={(e) => setEmailSubject(e.target.value)}
+                      className="w-full px-4 py-2.5 rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50/50 dark:bg-slate-800/50 text-sm font-semibold text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-sky-500"
+                      placeholder="Objet de l'email..."
+                    />
+                  </div>
+
+                  <div>
+                    <div className="flex items-center justify-between mb-1.5">
+                      <label className="text-xs font-semibold uppercase tracking-wider text-slate-500 dark:text-slate-400">
+                        Corps de l'email
+                      </label>
+                      <button
+                        type="button"
+                        onClick={handleCopyCurrentContent}
+                        className="inline-flex items-center gap-1 text-xs text-slate-500 hover:text-sky-600 dark:hover:text-sky-400 cursor-pointer font-medium"
+                      >
+                        {copiedSuccess ? (
+                          <>
+                            <Check className="h-3.5 w-3.5 text-sky-500" />
+                            <span className="text-sky-600 dark:text-sky-400 font-semibold">Copié !</span>
+                          </>
+                        ) : (
+                          <>
+                            <Copy className="h-3.5 w-3.5" />
+                            <span>Copier l'email</span>
+                          </>
+                        )}
+                      </button>
+                    </div>
+                    <textarea
+                      value={emailBody}
+                      onChange={(e) => setEmailBody(e.target.value)}
+                      rows={8}
+                      className="w-full rounded-2xl border border-slate-200 dark:border-slate-700 bg-slate-50/50 dark:bg-slate-800/50 p-4 text-sm font-sans focus:outline-none focus:ring-2 focus:ring-sky-500 leading-relaxed resize-none text-slate-900 dark:text-white"
+                      placeholder="Corps de l'email..."
+                    />
+                    <div className="flex items-center justify-between text-[11px] text-slate-400 mt-1">
+                      <span>✨ Prêt à envoyer via votre logiciel de messagerie</span>
+                      <span>{emailBody.length} caractères</span>
+                    </div>
+                  </div>
                 </div>
-              </div>
+              )}
             </div>
 
-            {/* Pied du Modal */}
+            {/* Pied du Modal avec actions adaptées */}
             <div className="px-6 py-4 bg-slate-50 dark:bg-slate-800/50 border-t border-slate-200 dark:border-slate-700/80 flex flex-col sm:flex-row items-center justify-between gap-3">
               <button
                 type="button"
@@ -1041,28 +1264,57 @@ export function GoogleMapsScraper() {
               </button>
 
               <div className="w-full sm:w-auto flex flex-col sm:flex-row items-center gap-2">
-                <button
-                  type="button"
-                  onClick={() => handleSendViaWhatsApp(selectedLeadForMessage)}
-                  className="w-full sm:w-auto px-4 py-2.5 rounded-xl border border-emerald-500/50 bg-emerald-50 dark:bg-emerald-950/40 text-emerald-700 dark:text-emerald-300 hover:bg-emerald-100 dark:hover:bg-emerald-900/50 text-xs font-bold inline-flex items-center justify-center gap-1.5 cursor-pointer transition-colors shadow-xs"
-                >
-                  <MessageCircle className="h-4 w-4" />
-                  <span>Ouvrir WhatsApp</span>
-                </button>
+                {outreachChannel === "whatsapp" ? (
+                  <>
+                    <button
+                      type="button"
+                      onClick={() => handleSendViaWhatsApp(selectedLeadForMessage)}
+                      className="w-full sm:w-auto px-4 py-2.5 rounded-xl border border-emerald-500/50 bg-emerald-50 dark:bg-emerald-950/40 text-emerald-700 dark:text-emerald-300 hover:bg-emerald-100 dark:hover:bg-emerald-900/50 text-xs font-bold inline-flex items-center justify-center gap-1.5 cursor-pointer transition-colors shadow-xs"
+                    >
+                      <MessageCircle className="h-4 w-4" />
+                      <span>Ouvrir WhatsApp</span>
+                    </button>
 
-                <button
-                  type="button"
-                  disabled={isSavingLeadToCrm}
-                  onClick={() => handleImportAndSendWhatsApp(selectedLeadForMessage)}
-                  className="w-full sm:w-auto px-5 py-2.5 rounded-xl bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-700 hover:to-teal-700 text-white text-xs font-bold inline-flex items-center justify-center gap-2 cursor-pointer transition-all shadow-md hover:shadow-lg disabled:opacity-50"
-                >
-                  {isSavingLeadToCrm ? (
-                    <RefreshCw className="h-4 w-4 animate-spin" />
-                  ) : (
-                    <Send className="h-4 w-4" />
-                  )}
-                  <span>Enregistrer au CRM & Envoyer</span>
-                </button>
+                    <button
+                      type="button"
+                      disabled={isSavingLeadToCrm}
+                      onClick={() => handleImportAndSend(selectedLeadForMessage)}
+                      className="w-full sm:w-auto px-5 py-2.5 rounded-xl bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-700 hover:to-teal-700 text-white text-xs font-bold inline-flex items-center justify-center gap-2 cursor-pointer transition-all shadow-md hover:shadow-lg disabled:opacity-50"
+                    >
+                      {isSavingLeadToCrm ? (
+                        <RefreshCw className="h-4 w-4 animate-spin" />
+                      ) : (
+                        <Send className="h-4 w-4" />
+                      )}
+                      <span>Enregistrer au CRM & Envoyer</span>
+                    </button>
+                  </>
+                ) : (
+                  <>
+                    <button
+                      type="button"
+                      onClick={() => handleSendViaEmail(selectedLeadForMessage)}
+                      className="w-full sm:w-auto px-4 py-2.5 rounded-xl border border-sky-500/50 bg-sky-50 dark:bg-sky-950/40 text-sky-700 dark:text-sky-300 hover:bg-sky-100 dark:hover:bg-sky-900/50 text-xs font-bold inline-flex items-center justify-center gap-1.5 cursor-pointer transition-colors shadow-xs"
+                    >
+                      <Mail className="h-4 w-4" />
+                      <span>Ouvrir dans ma messagerie</span>
+                    </button>
+
+                    <button
+                      type="button"
+                      disabled={isSavingLeadToCrm}
+                      onClick={() => handleImportAndSend(selectedLeadForMessage)}
+                      className="w-full sm:w-auto px-5 py-2.5 rounded-xl bg-gradient-to-r from-sky-600 to-indigo-600 hover:from-sky-700 hover:to-indigo-700 text-white text-xs font-bold inline-flex items-center justify-center gap-2 cursor-pointer transition-all shadow-md hover:shadow-lg disabled:opacity-50"
+                    >
+                      {isSavingLeadToCrm ? (
+                        <RefreshCw className="h-4 w-4 animate-spin" />
+                      ) : (
+                        <Send className="h-4 w-4" />
+                      )}
+                      <span>Enregistrer au CRM & Envoyer</span>
+                    </button>
+                  </>
+                )}
               </div>
             </div>
           </div>
