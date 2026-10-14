@@ -31,7 +31,7 @@ export default function PublicProductPage({
   const itemId = resolvedParams.id;
 
   const [item, setItem] = useState<CatalogItem | null>(null);
-  const [businessName, setBusinessName] = useState<string>("Teranga Immo & Services");
+  const [businessName, setBusinessName] = useState<string>("Welma Digital");
   const [activePhotoIdx, setActivePhotoIdx] = useState(0);
   const [copiedLink, setCopiedLink] = useState(false);
   const [isLoading, setIsLoading] = useState(true);

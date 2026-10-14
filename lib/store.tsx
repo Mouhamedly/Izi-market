@@ -111,7 +111,19 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
     if (!configured) {
       if (typeof window !== "undefined") {
         const savedBiz = localStorage.getItem("izi_business");
-        if (savedBiz) try { setBusiness(JSON.parse(savedBiz)); } catch {}
+        if (savedBiz) {
+          try {
+            const parsed = JSON.parse(savedBiz);
+            if (parsed.name?.includes("Teranga Immo")) {
+              parsed.name = "Welma Digital";
+              if (parsed.google_calendar_email?.includes("teranga-immo")) {
+                parsed.google_calendar_email = "contact@welma-digital.sn";
+              }
+              localStorage.setItem("izi_business", JSON.stringify(parsed));
+            }
+            setBusiness(parsed);
+          } catch {}
+        }
 
         const savedContacts = localStorage.getItem("izi_contacts");
         if (savedContacts) try { setContacts(JSON.parse(savedContacts)); } catch {}

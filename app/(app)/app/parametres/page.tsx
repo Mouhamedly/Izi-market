@@ -57,7 +57,7 @@ export default function SettingsPage() {
   // Champs Google Agenda
   const [googleCalendarConnected, setGoogleCalendarConnected] = useState(business.google_calendar_connected ?? true);
   const [googleCalendarId, setGoogleCalendarId] = useState(business.google_calendar_id || "primary");
-  const [googleCalendarEmail, setGoogleCalendarEmail] = useState(business.google_calendar_email || "contact@teranga-immo.sn");
+  const [googleCalendarEmail, setGoogleCalendarEmail] = useState(business.google_calendar_email || "contact@welma-digital.sn");
   const [googleMeetEnabled, setGoogleMeetEnabled] = useState(business.google_meet_enabled ?? true);
   const [googleAppointmentLink, setGoogleAppointmentLink] = useState(business.google_appointment_link || "");
   const [meetingDuration, setMeetingDuration] = useState(String(business.default_meeting_duration || 45));
@@ -967,7 +967,7 @@ export default function SettingsPage() {
               <div className="p-3.5 rounded-2xl bg-emerald-50 dark:bg-emerald-950/40 border border-emerald-200/80 dark:border-emerald-800 text-xs text-slate-900 dark:text-slate-100 whitespace-pre-wrap leading-relaxed max-w-xl">
                 {followupTemplate
                   .replace(/{nom}/gi, "M. Ibrahima Fall")
-                  .replace(/{entreprise}/gi, bizName || "Teranga Immo")
+                  .replace(/{entreprise}/gi, bizName || "Welma Digital")
                   .replace(/{besoin}/gi, "Villa F5 avec piscine à Ngor")}
               </div>
             </div>
@@ -1183,10 +1183,10 @@ export default function SettingsPage() {
                   </button>
                   <button
                     type="button"
-                    onClick={() => setTempGmailInput("contact@teranga-immo.sn")}
+                    onClick={() => setTempGmailInput("contact@welma-digital.sn")}
                     className="px-2.5 py-1.5 rounded-lg text-xs bg-slate-800 hover:bg-slate-700 text-slate-200 border border-slate-700 cursor-pointer"
                   >
-                    contact@teranga-immo.sn
+                    contact@welma-digital.sn
                   </button>
                 </div>
               </div>

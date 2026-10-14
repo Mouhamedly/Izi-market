@@ -159,7 +159,7 @@ export default function LandingPage() {
                       <div className="h-3 w-3 rounded-full bg-emerald-500/80"></div>
                     </div>
                     <span className="text-xs font-mono text-slate-400">
-                      izimarket.app/inbox • Teranga Immo Dakar
+                      izimarket.app/inbox • Welma Digital Dakar
                     </span>
                   </div>
 
@@ -187,7 +187,7 @@ export default function LandingPage() {
                     <div className="flex justify-end">
                       <div className="max-w-[85%] rounded-2xl rounded-tr-xs px-3.5 py-2.5 bg-[#005c4b] text-xs text-white leading-relaxed">
                         <span className="text-[10px] text-emerald-200 font-semibold block mb-1">✨ Répondu par Claude IA</span>
-                        Wa Alaykoum Salam M. Diop ! Bienvenue chez Teranga Immo 🌿<br/><br/>
+                        Wa Alaykoum Salam M. Diop ! Bienvenue chez Welma Digital 🌿<br/><br/>
                         Oui, nous avons une superbe <b>Villa R+1 avec Piscine à Mermoz Pyrotechnie</b> (4 chambres autonomes, jardin, 1 500 000 FCFA/mois).<br/><br/>
                         Souhaitez-vous planifier une visite sur place ?
                         <span className="text-[9px] text-emerald-200 block text-right mt-1">10:14 • Reçu</span>

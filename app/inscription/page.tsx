@@ -176,7 +176,7 @@ export default function RegisterPage() {
                 <input
                   type="text"
                   required
-                  placeholder="Teranga Immo Dakar"
+                  placeholder="Welma Digital Dakar"
                   value={companyName}
                   onChange={(e) => setCompanyName(e.target.value)}
                   className="w-full text-xs pl-10 pr-4 py-3 rounded-xl bg-slate-950 border border-slate-800 text-white placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-emerald-500"
@@ -193,7 +193,7 @@ export default function RegisterPage() {
                 <input
                   type="email"
                   required
-                  placeholder="contact@teranga-immo.sn"
+                  placeholder="contact@welma-digital.sn"
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
                   className="w-full text-xs pl-10 pr-4 py-3 rounded-xl bg-slate-950 border border-slate-800 text-white placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-emerald-500"

@@ -2,11 +2,11 @@ import { Business, Contact, Conversation, FAQ, CatalogItem, Message, Appointment
 
 export const INITIAL_BUSINESS: Business = {
   id: "00000000-0000-0000-0000-000000000001",
-  name: "Teranga Immo & Services",
-  sector: "Immobilier & Résidences à Dakar",
+  name: "Welma Digital",
+  sector: "Solutions Digitales & Services Commerciaux",
   ai_enabled: true,
   ai_tone: "teranga",
-  welcome_message: "Salam Alaykoum ! Bienvenue chez Teranga Immo. Comment pouvons-nous vous accompagner dans votre recherche de logement ou investissement aujourd'hui ?",
+  welcome_message: "Salam Alaykoum ! Bienvenue chez Welma Digital. Comment pouvons-nous vous accompagner dans le développement de votre activité aujourd'hui ?",
   opening_hours: {
     monday: { open: "08:30", close: "18:30" },
     tuesday: { open: "08:30", close: "18:30" },
@@ -21,7 +21,7 @@ export const INITIAL_BUSINESS: Business = {
   wa_verify_status: "unverified",
   google_calendar_connected: true,
   google_calendar_id: "primary",
-  google_calendar_email: "contact@teranga-immo.sn",
+  google_calendar_email: "contact@welma-digital.sn",
   google_meet_enabled: true,
   google_appointment_link: "https://calendar.google.com/calendar/u/0/appointments/schedules/AcZssZ0...",
   default_meeting_duration: 45,
@@ -351,7 +351,7 @@ export const INITIAL_MESSAGES: Message[] = [
     business_id: "00000000-0000-0000-0000-000000000001",
     direction: "out",
     sender: "ai",
-    body: "Wa Alaykoum Salam M. Diop ! Bienvenue chez Teranga Immo 🌿\n\nOui, nous avons une splendide *Villa R+1 avec Piscine à Mermoz Pyrotechnie* :\n✨ 4 chambres avec salles de bain privatives\n🏊 Piscine et jardin arboré\n💰 1 500 000 FCFA / mois\n\nSouhaitez-vous planifier une visite sur place ?",
+    body: "Wa Alaykoum Salam M. Diop ! Bienvenue chez Welma Digital 🌿\n\nOui, nous avons une splendide *Villa R+1 avec Piscine à Mermoz Pyrotechnie* :\n✨ 4 chambres avec salles de bain privatives\n🏊 Piscine et jardin arboré\n💰 1 500 000 FCFA / mois\n\nSouhaitez-vous planifier une visite sur place ?",
     wa_message_id: "wa_msg_002",
     status: "read",
     created_at: new Date(Date.now() - 2 * 3600 * 1000 + 30000).toISOString()
@@ -373,7 +373,7 @@ export const INITIAL_MESSAGES: Message[] = [
     business_id: "00000000-0000-0000-0000-000000000001",
     direction: "out",
     sender: "agent",
-    body: "Bonjour M. Diop, ici Mamadou, responsable des visites chez Teranga Immo. C'est noté pour ce samedi à 11h00 précises ! Je vous envoie la géolocalisation exacte. Concernant la caution, nous pourrons en échanger ensemble lors de la visite.",
+    body: "Bonjour M. Diop, ici Mamadou de chez Welma Digital. C'est noté pour ce samedi à 11h00 précises ! Je vous envoie la géolocalisation exacte. Concernant la caution, nous pourrons en échanger ensemble lors de la visite.",
     wa_message_id: "wa_msg_004",
     status: "delivered",
     created_at: new Date(Date.now() - 15 * 60 * 1000).toISOString()

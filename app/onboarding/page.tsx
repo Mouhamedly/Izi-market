@@ -8,11 +8,11 @@ import { AiTone } from "@/types/database";
 export default function OnboardingPage() {
   const router = useRouter();
   const [step, setStep] = useState(1);
-  const [companyName, setCompanyName] = useState("Teranga Immo");
-  const [sector, setSector] = useState("Immobilier & Résidences");
+  const [companyName, setCompanyName] = useState("Welma Digital");
+  const [sector, setSector] = useState("Solutions Digitales & Services");
   const [aiTone, setAiTone] = useState<AiTone>("teranga");
   const [welcomeMessage, setWelcomeMessage] = useState(
-    "Salam Alaykoum ! Bienvenue chez Teranga Immo. Comment puis-je vous aider aujourd'hui ?"
+    "Salam Alaykoum ! Bienvenue chez Welma Digital. Comment puis-je vous aider aujourd'hui ?"
   );
 
   useEffect(() => {
