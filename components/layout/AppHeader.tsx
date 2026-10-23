@@ -8,8 +8,10 @@ import {
   Search,
   Smartphone,
   Menu,
-  Sparkles
+  Sparkles,
+  QrCode
 } from "lucide-react";
+import { WhatsAppIcon } from "@/components/icons/WhatsAppIcon";
 import { WhatsAppSimulatorModal } from "@/components/simulator/WhatsAppSimulatorModal";
 import { UserProfileDropdown } from "./UserProfileDropdown";
 
@@ -73,8 +75,32 @@ export function AppHeader({ onOpenMobileMenu }: AppHeaderProps) {
         </div>
 
         {/* Right: Actions */}
-        <div className="flex items-center gap-1.5 sm:gap-3 shrink-0">
+        <div className="flex items-center gap-1.5 sm:gap-2.5 shrink-0">
           
+          {/* Bouton Accès & État WhatsApp en Direct */}
+          <Link
+            href="/app/whatsapp"
+            className={`flex items-center gap-1.5 px-2.5 sm:px-3 py-1.5 rounded-xl text-xs font-bold border transition-all cursor-pointer ${
+              business.wa_verify_status === "verified"
+                ? "bg-emerald-50 dark:bg-emerald-950/40 text-emerald-700 dark:text-emerald-400 border-emerald-200 dark:border-emerald-800 hover:bg-emerald-100"
+                : "bg-amber-50 dark:bg-amber-950/40 text-amber-700 dark:text-amber-400 border-amber-200 dark:border-amber-800 hover:bg-amber-100"
+            }`}
+            title={business.wa_verify_status === "verified" ? "WhatsApp Connecté - Cliquez pour gérer ou déconnecter" : "WhatsApp Déconnecté - Cliquez pour connecter"}
+          >
+            <WhatsAppIcon className="h-3.5 w-3.5 shrink-0" />
+            <span className="hidden lg:inline">
+              {business.wa_verify_status === "verified"
+                ? `WhatsApp : ${business.wa_phone_number_id || "En ligne"}`
+                : "Connecter WhatsApp"}
+            </span>
+            <span className="lg:hidden text-[11px]">
+              {business.wa_verify_status === "verified" ? "WA Connecté" : "Connecter WA"}
+            </span>
+            <span className={`h-2 w-2 rounded-full shrink-0 ${
+              business.wa_verify_status === "verified" ? "bg-emerald-500 animate-pulse" : "bg-amber-500 animate-ping"
+            }`} />
+          </Link>
+
           {/* Bouton IA Toggle */}
           <button
             onClick={toggleAi}

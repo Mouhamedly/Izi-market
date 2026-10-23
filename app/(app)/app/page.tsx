@@ -22,8 +22,11 @@ import {
   ExternalLink,
   MessageCircle,
   Plus,
-  UserPlus
+  UserPlus,
+  QrCode,
+  LogOut
 } from "lucide-react";
+import { WhatsAppIcon } from "@/components/icons/WhatsAppIcon";
 import { formatDate } from "@/lib/utils";
 import { formatAppointmentSlot } from "@/lib/calendar";
 import { isContactEligibleForFollowup } from "@/lib/followup";
@@ -106,32 +109,70 @@ export default function DashboardPage() {
       <div className="relative overflow-hidden rounded-2xl sm:rounded-3xl bg-gradient-to-r from-emerald-900 via-teal-900 to-slate-900 text-white p-4.5 sm:p-6 md:p-8 shadow-xl border border-emerald-800/40">
         <div className="relative z-10 flex flex-col md:flex-row md:items-center justify-between gap-5 sm:gap-6">
           <div className="space-y-2">
-            <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-emerald-500/20 text-emerald-300 text-[11px] sm:text-xs font-semibold backdrop-blur-md border border-emerald-500/30">
-              <Sparkles className="h-3.5 w-3.5" />
-              Assistant Commercial WhatsApp Connecté
+            <div className="flex flex-wrap items-center gap-2">
+              {business.wa_verify_status === "verified" ? (
+                <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-emerald-500/20 text-emerald-300 text-[11px] sm:text-xs font-semibold backdrop-blur-md border border-emerald-500/30">
+                  <WhatsAppIcon className="h-3.5 w-3.5" />
+                  <span>WhatsApp Connecté ({business.wa_phone_number_id || "+221..."})</span>
+                </div>
+              ) : (
+                <Link
+                  href="/app/whatsapp"
+                  className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-amber-500/20 text-amber-300 hover:bg-amber-500/30 text-[11px] sm:text-xs font-bold backdrop-blur-md border border-amber-500/30 transition-all cursor-pointer"
+                >
+                  <span className="h-2 w-2 rounded-full bg-amber-400 animate-pulse" />
+                  <span>WhatsApp Non Connecté · Cliquez pour Scanner le QR Code</span>
+                </Link>
+              )}
+              
+              <div className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-white/10 text-emerald-200 text-[10px] sm:text-[11px] font-medium backdrop-blur-md">
+                <Sparkles className="h-3 w-3 text-emerald-400" />
+                <span>IA Izimarket Active</span>
+              </div>
             </div>
+
             <h1 className="text-xl sm:text-2xl md:text-3xl font-extrabold tracking-tight">
               Bonjour, {business.name} 👋
             </h1>
             <p className="text-xs sm:text-sm text-emerald-100/80 max-w-xl">
-              Votre assistant IA Izimarket qualifie vos prospects WhatsApp 24h/24 au Sénégal. Vos données sont synchronisées en direct.
+              {business.wa_verify_status === "verified"
+                ? "Votre assistant IA qualifie vos prospects WhatsApp 24h/24 au Sénégal. Vous pouvez déconnecter votre session à tout moment."
+                : "Connectez votre numéro WhatsApp ci-dessous pour que votre assistant IA commence à répondre et qualifier vos clients automatiquement."}
             </p>
           </div>
 
           <div className="flex flex-wrap items-center gap-2.5 sm:gap-3">
+            {business.wa_verify_status === "verified" ? (
+              <Link
+                href="/app/whatsapp"
+                className="inline-flex items-center justify-center gap-2 px-3.5 sm:px-4 py-2 sm:py-2.5 rounded-xl bg-white/10 hover:bg-white/20 text-white text-xs font-bold backdrop-blur-md transition-all border border-white/20 flex-1 sm:flex-initial text-center cursor-pointer"
+              >
+                <WhatsAppIcon className="h-4 w-4" />
+                <span>Gérer / Déconnecter WhatsApp</span>
+              </Link>
+            ) : (
+              <Link
+                href="/app/whatsapp"
+                className="inline-flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl bg-emerald-500 hover:bg-emerald-400 text-slate-950 text-xs font-extrabold shadow-lg shadow-emerald-500/30 transition-all hover:scale-105 flex-1 sm:flex-initial text-center cursor-pointer animate-pulse"
+              >
+                <QrCode className="h-4 w-4 shrink-0 text-slate-950" />
+                <span>Connecter mon WhatsApp</span>
+              </Link>
+            )}
+
             <button
               onClick={() => setIsSimulatorOpen(true)}
               className="inline-flex items-center justify-center gap-2 px-3.5 sm:px-4 py-2 sm:py-2.5 rounded-xl bg-white text-slate-900 hover:bg-emerald-50 text-xs font-bold transition-all shadow-md hover:scale-[1.02] cursor-pointer flex-1 sm:flex-initial"
             >
               <Smartphone className="h-4 w-4 text-emerald-600 shrink-0" />
-              <span>Tester le Simulateur</span>
+              <span>Simulateur</span>
             </button>
             <Link
               href="/app/inbox"
               className="inline-flex items-center justify-center gap-2 px-3.5 sm:px-4 py-2 sm:py-2.5 rounded-xl bg-emerald-600/80 hover:bg-emerald-600 text-white text-xs font-bold backdrop-blur-md transition-all border border-emerald-500/40 flex-1 sm:flex-initial text-center"
             >
               <MessageSquare className="h-4 w-4 shrink-0" />
-              <span>Ouvrir la boîte</span>
+              <span>Boîte de réception</span>
             </Link>
           </div>
         </div>

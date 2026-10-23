@@ -18,8 +18,11 @@ import {
   Package,
   X,
   Compass,
-  User
+  User,
+  LogOut,
+  QrCode
 } from "lucide-react";
+import { WhatsAppIcon } from "@/components/icons/WhatsAppIcon";
 
 interface AppSidebarProps {
   mobileOpen?: boolean;
@@ -28,7 +31,7 @@ interface AppSidebarProps {
 
 export function AppSidebar({ mobileOpen = false, onMobileClose }: AppSidebarProps) {
   const pathname = usePathname();
-  const { business, conversations, appointments, quotes, catalog } = useApp();
+  const { business, updateBusinessSettings, logout, conversations, appointments, quotes, catalog } = useApp();
 
   const prevPathnameRef = React.useRef(pathname);
 
@@ -70,11 +73,22 @@ export function AppSidebar({ mobileOpen = false, onMobileClose }: AppSidebarProp
       active: pathname === "/app",
     },
     {
+      label: "Connexion WhatsApp",
+      href: "/app/whatsapp",
+      icon: WhatsAppIcon,
+      active: pathname.startsWith("/app/whatsapp"),
+      badge: business.wa_verify_status === "verified" ? "En ligne" : "À connecter",
+      badgeClass: business.wa_verify_status === "verified"
+        ? "bg-emerald-100 text-emerald-700 dark:bg-emerald-950 dark:text-emerald-400"
+        : "bg-amber-100 text-amber-700 dark:bg-amber-950 dark:text-amber-400 animate-pulse",
+    },
+    {
       label: "Boîte de réception",
       href: "/app/inbox",
       icon: MessageSquare,
       active: pathname.startsWith("/app/inbox"),
       badge: unreadTotal > 0 ? unreadTotal : null,
+      badgeClass: "bg-emerald-100 text-emerald-700 dark:bg-emerald-950 dark:text-emerald-400",
     },
     {
       label: "Prospects CRM",
@@ -208,12 +222,12 @@ export function AppSidebar({ mobileOpen = false, onMobileClose }: AppSidebarProp
                   <Icon className={`h-4 w-4 ${item.active ? "text-white" : "text-slate-500 dark:text-slate-400"}`} />
                   <span>{item.label}</span>
                 </div>
-                {item.badge !== null && (
+                {item.badge !== null && item.badge !== undefined && (
                   <span
                     className={`px-1.5 py-0.5 text-[10px] font-bold rounded-full ${
                       item.active
                         ? "bg-white text-emerald-700"
-                        : "bg-emerald-100 text-emerald-700 dark:bg-emerald-950 dark:text-emerald-400"
+                        : (item as any).badgeClass || "bg-emerald-100 text-emerald-700 dark:bg-emerald-950 dark:text-emerald-400"
                     }`}
                   >
                     {item.badge}
@@ -225,30 +239,79 @@ export function AppSidebar({ mobileOpen = false, onMobileClose }: AppSidebarProp
         </nav>
       </div>
 
-      {/* Footer System Status */}
-      <div className="p-4 m-3 rounded-2xl bg-gradient-to-b from-slate-50 to-slate-100/80 dark:from-slate-800/40 dark:to-slate-800/80 border border-slate-200/80 dark:border-slate-800 space-y-3">
+      {/* Footer System Status & Quick WhatsApp Connect/Disconnect */}
+      <div className="p-3.5 m-3 rounded-2xl bg-gradient-to-b from-slate-50 to-slate-100/80 dark:from-slate-800/40 dark:to-slate-800/80 border border-slate-200/80 dark:border-slate-800 space-y-2.5">
+        
+        {/* WhatsApp Real-Time Connection Bar */}
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-2">
             <span className="relative flex h-2 w-2">
-              <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
-              <span className="relative inline-flex rounded-full h-2 w-2 bg-emerald-500"></span>
+              <span className={`animate-ping absolute inline-flex h-full w-full rounded-full opacity-75 ${
+                business.wa_verify_status === "verified" ? "bg-emerald-400" : "bg-amber-400"
+              }`} />
+              <span className={`relative inline-flex rounded-full h-2 w-2 ${
+                business.wa_verify_status === "verified" ? "bg-emerald-500" : "bg-amber-500"
+              }`} />
             </span>
-            <span className="text-[11px] font-semibold text-slate-700 dark:text-slate-300">
-              WhatsApp Cloud
+            <span className="text-[11px] font-bold text-slate-800 dark:text-slate-200">
+              {business.wa_verify_status === "verified" ? "WhatsApp Connecté" : "WhatsApp Déconnecté"}
             </span>
           </div>
-          <span className="text-[10px] font-bold px-1.5 py-0.5 rounded bg-emerald-500/10 text-emerald-600 dark:text-emerald-400">
-            En ligne
-          </span>
+
+          <Link
+            href="/app/whatsapp"
+            className={`text-[10px] font-extrabold px-2 py-0.5 rounded-md transition-colors ${
+              business.wa_verify_status === "verified"
+                ? "bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 hover:bg-emerald-500/20"
+                : "bg-amber-500/10 text-amber-600 dark:text-amber-400 hover:bg-amber-500/20"
+            }`}
+          >
+            {business.wa_verify_status === "verified" ? "Gérer" : "Connecter"}
+          </Link>
         </div>
 
-        <div className="flex items-center justify-between text-[11px] text-slate-500 dark:text-slate-400 pt-1 border-t border-slate-200/60 dark:border-slate-700/60">
-          <span className="flex items-center gap-1.5">
-            <Zap className="h-3 w-3 text-amber-500" />
-            Claude 3.5 Sonnet
-          </span>
-          <span className="font-medium text-slate-700 dark:text-slate-300">Actif</span>
+        {business.wa_verify_status === "verified" ? (
+          <div className="flex items-center justify-between text-[10px] text-slate-500 dark:text-slate-400">
+            <span className="font-mono truncate max-w-[120px]">
+              {business.wa_phone_number_id || "+221 77..."}
+            </span>
+            <button
+              type="button"
+              onClick={() => {
+                updateBusinessSettings({
+                  wa_verify_status: "unverified",
+                  wa_phone_number_id: ""
+                });
+              }}
+              className="text-rose-600 dark:text-rose-400 hover:underline font-bold cursor-pointer"
+              title="Déconnecter WhatsApp"
+            >
+              Déconnecter
+            </button>
+          </div>
+        ) : (
+          <Link
+            href="/app/whatsapp"
+            className="w-full flex items-center justify-center gap-1.5 py-1.5 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white text-[11px] font-bold transition-all shadow-xs"
+          >
+            <QrCode className="h-3 w-3" />
+            <span>Scanner QR WhatsApp</span>
+          </Link>
+        )}
+
+        {/* Platform Logout Button (Déconnexion de l'application à tout moment) */}
+        <div className="pt-2 border-t border-slate-200/60 dark:border-slate-700/60 flex items-center justify-between">
+          <button
+            type="button"
+            onClick={logout}
+            className="w-full flex items-center justify-center gap-1.5 py-1.5 rounded-xl text-rose-600 dark:text-rose-400 hover:bg-rose-50 dark:hover:bg-rose-950/40 text-[11px] font-bold transition-colors cursor-pointer"
+            title="Se déconnecter de votre compte IZI MARKET"
+          >
+            <LogOut className="h-3.5 w-3.5" />
+            <span>Se déconnecter de la plateforme</span>
+          </button>
         </div>
+
       </div>
     </div>
   );

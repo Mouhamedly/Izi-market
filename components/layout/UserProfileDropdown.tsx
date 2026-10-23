@@ -17,6 +17,7 @@ import {
   Sliders
 } from "lucide-react";
 import { GoogleIcon } from "@/components/icons/GoogleIcon";
+import { WhatsAppIcon } from "@/components/icons/WhatsAppIcon";
 
 export function UserProfileDropdown() {
   const { business, userEmail, logout, isDemoMode } = useApp();
@@ -118,6 +119,29 @@ export function UserProfileDropdown() {
 
           {/* Quick Menu Items */}
           <div className="p-2 space-y-1">
+            <Link
+              href="/app/whatsapp"
+              onClick={() => setIsOpen(false)}
+              className="flex items-center gap-3 px-3.5 py-2.5 rounded-2xl text-xs font-semibold text-slate-700 dark:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-800/80 transition-colors group cursor-pointer"
+            >
+              <div className="h-8 w-8 rounded-xl bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 flex items-center justify-center shrink-0 group-hover:scale-110 transition-transform">
+                <WhatsAppIcon className="h-4 w-4" />
+              </div>
+              <div className="flex-1 min-w-0">
+                <div className="flex items-center justify-between">
+                  <p className="font-bold text-slate-900 dark:text-white">Connexion WhatsApp</p>
+                  <span className={`text-[9px] font-bold px-1.5 py-0.5 rounded-md ${
+                    business.wa_verify_status === "verified"
+                      ? "bg-emerald-100 dark:bg-emerald-950 text-emerald-700 dark:text-emerald-300"
+                      : "bg-amber-100 dark:bg-amber-950 text-amber-700 dark:text-amber-300"
+                  }`}>
+                    {business.wa_verify_status === "verified" ? "Connecté" : "À connecter"}
+                  </span>
+                </div>
+                <p className="text-[10px] text-slate-500">Scanner QR Code & Déconnecter à tout moment</p>
+              </div>
+            </Link>
+
             <Link
               href="/app/parametres?tab=profile"
               onClick={() => setIsOpen(false)}
