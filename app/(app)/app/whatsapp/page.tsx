@@ -18,7 +18,8 @@ import {
   MessageSquare,
   ArrowRight,
   ExternalLink,
-  Sliders
+  Sliders,
+  Globe
 } from "lucide-react";
 
 export default function WhatsAppConnectionPage() {
@@ -181,10 +182,10 @@ export default function WhatsAppConnectionPage() {
               : "text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white"
           }`}
         >
-          <QrCode className="h-3.5 w-3.5" />
-          <span>Scanner QR Code</span>
+          <Globe className="h-3.5 w-3.5 text-emerald-500" />
+          <span>WhatsApp Web (Scan QR)</span>
           <span className="px-1.5 py-0.5 text-[9px] font-extrabold bg-emerald-100 dark:bg-emerald-950 text-emerald-700 dark:text-emerald-300 rounded-md">
-            Direct
+            Officiel
           </span>
         </button>
 
