@@ -30,6 +30,16 @@ export const INITIAL_BUSINESS: Business = {
   followup_max_attempts: 2,
   followup_mode: "automatic",
   followup_template: "Salam {nom} ! J'espère que vous vous portez bien. ✨\n\nJe me permets de revenir vers vous concernant votre recherche de {besoin} chez {entreprise}. Êtes-vous toujours intéressé(e) ou souhaitez-vous qu'on planifie un appel ou une visite cette semaine ?",
+  owner_name: "Responsable Commercial",
+  owner_role: "Directeur Général",
+  contact_email: "contact@izimarket.sn",
+  contact_phone: "+221 77 000 00 00",
+  tagline: "Solutions & Services Commerciaux au Sénégal",
+  city: "Dakar",
+  assistant_name: "Izimarket IA",
+  brand_color: "emerald",
+  currency: "FCFA",
+  signature: "— L'équipe commerciale",
   created_at: new Date(Date.now() - 30 * 24 * 3600 * 1000).toISOString(),
   updated_at: new Date().toISOString()
 };

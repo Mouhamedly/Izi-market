@@ -11,6 +11,7 @@ import {
   Sparkles
 } from "lucide-react";
 import { WhatsAppSimulatorModal } from "@/components/simulator/WhatsAppSimulatorModal";
+import { UserProfileDropdown } from "./UserProfileDropdown";
 
 interface AppHeaderProps {
   onOpenMobileMenu?: () => void;
@@ -99,10 +100,8 @@ export function AppHeader({ onOpenMobileMenu }: AppHeaderProps) {
             <span className="sm:hidden text-[11px]">Simulateur</span>
           </button>
 
-          {/* User Avatar */}
-          <div className="h-8 w-8 rounded-full bg-slate-200 dark:bg-slate-800 flex items-center justify-center font-bold text-xs text-slate-700 dark:text-slate-200 border border-slate-300 dark:border-slate-700 shrink-0">
-            {business.name ? business.name.slice(0, 2).toUpperCase() : "IZ"}
-          </div>
+          {/* Menu Profil Utilisateur Interactif */}
+          <UserProfileDropdown />
         </div>
       </header>
 

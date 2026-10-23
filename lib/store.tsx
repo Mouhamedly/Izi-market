@@ -58,6 +58,8 @@ interface AppContextType {
   isDemoMode: boolean;
   selectedConversationId: string | null;
   setSelectedConversationId: (id: string | null) => void;
+  userEmail: string | null;
+  logout: () => Promise<void>;
   // Actions
   toggleConversationMode: (convId: string) => Promise<void>;
   sendManualMessage: (convId: string, text: string) => Promise<void>;
@@ -102,6 +104,19 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
   const [quotes, setQuotes] = useState<Quote[]>(INITIAL_QUOTES);
   const [selectedConversationId, setSelectedConversationId] = useState<string | null>("conv_1");
   const [isDemoMode, setIsDemoMode] = useState<boolean>(true);
+  const [userEmail, setUserEmail] = useState<string | null>(null);
+
+  const logout = useCallback(async () => {
+    if (isSupabaseConfigured()) {
+      const supabase = createClient();
+      await supabase.auth.signOut();
+    }
+    if (typeof window !== "undefined") {
+      sessionStorage.removeItem("izi_auth_provider");
+      sessionStorage.removeItem("izi_auth_email");
+      window.location.href = "/connexion";
+    }
+  }, []);
 
   // Initialisation et chargement des données depuis Supabase ou LocalStorage
   useEffect(() => {
@@ -160,6 +175,9 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
         let targetBizId = business.id;
 
         if (user) {
+          if (user.email) {
+            setUserEmail(user.email);
+          }
           const { data: member } = await supabase
             .from("members")
             .select("business_id")
@@ -168,6 +186,68 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
 
           if (member?.business_id) {
             targetBizId = member.business_id;
+          } else {
+            // Utilisateur connecté sans entreprise liée : détecter son nom d'entreprise
+            let candidateName = "";
+            let candidateSector = "Commerce & Services";
+
+            if (typeof window !== "undefined") {
+              const savedBizStr = localStorage.getItem("izi_business");
+              if (savedBizStr) {
+                try {
+                  const parsed = JSON.parse(savedBizStr);
+                  if (parsed.name && parsed.name !== "Welma Digital" && !parsed.name.includes("Teranga Immo")) {
+                    candidateName = parsed.name;
+                    candidateSector = parsed.sector || candidateSector;
+                  }
+                } catch {}
+              }
+              if (!candidateName) {
+                const tempName = sessionStorage.getItem("izi_temp_biz_name");
+                if (tempName) candidateName = tempName;
+              }
+            }
+
+            if (!candidateName && user.user_metadata?.company_name) {
+              candidateName = user.user_metadata.company_name;
+            }
+            if (!candidateName && user.user_metadata?.full_name && user.user_metadata.full_name !== "Google User") {
+              candidateName = user.user_metadata.full_name;
+            }
+            if (!candidateName && user.email) {
+              const emailPrefix = user.email.split("@")[0].replace(/[._-]/g, " ");
+              candidateName = emailPrefix
+                .split(" ")
+                .filter(Boolean)
+                .map((w: string) => w.charAt(0).toUpperCase() + w.slice(1))
+                .join(" ");
+            }
+
+            if (candidateName) {
+              const { data: newBiz } = await supabase
+                .from("businesses")
+                .insert({
+                  name: candidateName,
+                  sector: candidateSector,
+                  ai_enabled: true,
+                  ai_tone: "teranga",
+                  welcome_message: `Salam Alaykoum ! Bienvenue chez ${candidateName}. Comment pouvons-nous vous accompagner aujourd'hui ?`,
+                })
+                .select()
+                .maybeSingle();
+
+              if (newBiz) {
+                await supabase.from("members").insert({
+                  user_id: user.id,
+                  business_id: newBiz.id,
+                  role: "owner"
+                });
+                targetBizId = newBiz.id;
+                setBusiness(newBiz);
+              } else {
+                setBusiness((prev) => ({ ...prev, name: candidateName }));
+              }
+            }
           }
         }
 
@@ -181,8 +261,8 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
         if (bizData) {
           setBusiness(bizData);
           targetBizId = bizData.id;
-        } else {
-          // Fallback sur le business démo par défaut
+        } else if (!user) {
+          // Fallback sur le business démo par défaut seulement si pas connecté
           const { data: defaultBiz } = await supabase
             .from("businesses")
             .select("*")
@@ -576,12 +656,54 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
   // Paramètres Business
   const updateBusinessSettings = useCallback(async (updates: Partial<Business>) => {
     const nowIso = new Date().toISOString();
-    setBusiness((prev) => ({ ...prev, ...updates, updated_at: nowIso }));
+    setBusiness((prev) => {
+      const next = { ...prev, ...updates, updated_at: nowIso };
+      if (typeof window !== "undefined") {
+        localStorage.setItem("izi_business", JSON.stringify(next));
+      }
+      return next;
+    });
+
     if (isSupabaseConfigured()) {
       const supabase = createClient();
-      await supabase.from("businesses").update({ ...updates, updated_at: nowIso }).eq("id", business.id);
+      const { data: { user } } = await supabase.auth.getUser();
+      if (user) {
+        const { data: member } = await supabase
+          .from("members")
+          .select("business_id")
+          .eq("user_id", user.id)
+          .maybeSingle();
+
+        if (member?.business_id) {
+          await supabase.from("businesses").update({ ...updates, updated_at: nowIso }).eq("id", member.business_id);
+        } else {
+          const { data: createdBiz } = await supabase
+            .from("businesses")
+            .insert({
+              name: updates.name || business.name,
+              sector: updates.sector || business.sector,
+              ai_enabled: updates.ai_enabled ?? business.ai_enabled,
+              ai_tone: updates.ai_tone || business.ai_tone,
+              welcome_message: updates.welcome_message || business.welcome_message,
+              updated_at: nowIso
+            })
+            .select()
+            .maybeSingle();
+
+          if (createdBiz) {
+            await supabase.from("members").insert({
+              user_id: user.id,
+              business_id: createdBiz.id,
+              role: "owner"
+            });
+            setBusiness(createdBiz);
+          }
+        }
+      } else {
+        await supabase.from("businesses").update({ ...updates, updated_at: nowIso }).eq("id", business.id);
+      }
     }
-  }, [business.id]);
+  }, [business]);
 
   // Actions Rendez-vous Google Agenda
   const addAppointment = useCallback(async (apptData: Omit<Appointment, "id" | "business_id" | "created_at">) => {
@@ -1073,6 +1195,8 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
         isDemoMode,
         selectedConversationId,
         setSelectedConversationId,
+        userEmail,
+        logout,
         toggleConversationMode,
         sendManualMessage,
         addContact,

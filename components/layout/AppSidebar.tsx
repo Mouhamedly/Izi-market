@@ -17,7 +17,8 @@ import {
   FileText,
   Package,
   X,
-  Compass
+  Compass,
+  User
 } from "lucide-react";
 
 interface AppSidebarProps {
@@ -122,6 +123,12 @@ export function AppSidebar({ mobileOpen = false, onMobileClose }: AppSidebarProp
       active: pathname.startsWith("/app/import"),
     },
     {
+      label: "Profil & Marque",
+      href: "/app/profil",
+      icon: User,
+      active: pathname.startsWith("/app/profil"),
+    },
+    {
       label: "Paramètres",
       href: "/app/parametres",
       icon: Settings,
@@ -160,13 +167,17 @@ export function AppSidebar({ mobileOpen = false, onMobileClose }: AppSidebarProp
         </div>
 
         {/* Business Selector / Info */}
-        <div className="px-4 py-3 mx-3 my-3 rounded-xl bg-slate-50 dark:bg-slate-800/50 border border-slate-200/80 dark:border-slate-800">
+        <Link
+          href="/app/parametres?tab=profile"
+          className="group block px-4 py-3 mx-3 my-3 rounded-2xl bg-slate-50 dark:bg-slate-800/50 hover:bg-emerald-50/50 dark:hover:bg-slate-800 border border-slate-200/80 dark:border-slate-800 hover:border-emerald-300 dark:hover:border-emerald-700/50 transition-all cursor-pointer shadow-2xs"
+          title="Cliquez pour personnaliser votre profil et entreprise"
+        >
           <div className="flex items-center gap-2.5">
-            <div className="h-8 w-8 rounded-lg bg-emerald-500 text-white font-bold flex items-center justify-center text-xs shadow-sm shrink-0">
+            <div className="h-9 w-9 rounded-xl bg-gradient-to-tr from-emerald-600 to-teal-500 text-white font-black flex items-center justify-center text-xs shadow-sm shrink-0 group-hover:scale-105 transition-transform">
               {business.name.slice(0, 2).toUpperCase()}
             </div>
             <div className="flex-1 min-w-0">
-              <p className="text-xs font-bold text-slate-900 dark:text-white truncate">
+              <p className="text-xs font-bold text-slate-900 dark:text-white truncate group-hover:text-emerald-600 dark:group-hover:text-emerald-400 transition-colors">
                 {business.name}
               </p>
               <p className="text-[11px] text-slate-500 dark:text-slate-400 truncate">
@@ -174,7 +185,7 @@ export function AppSidebar({ mobileOpen = false, onMobileClose }: AppSidebarProp
               </p>
             </div>
           </div>
-        </div>
+        </Link>
 
         {/* Navigation Links */}
         <nav className="px-3 space-y-1">

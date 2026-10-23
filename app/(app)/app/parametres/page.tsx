@@ -33,11 +33,13 @@ import { exportDatabaseBackup } from "@/lib/importer";
 import { GoogleIcon } from "@/components/icons/GoogleIcon";
 import { WhatsAppIcon } from "@/components/icons/WhatsAppIcon";
 import { WhatsAppQrConnector } from "@/components/whatsapp/WhatsAppQrConnector";
+import { ProfileCustomizer } from "@/components/profile/ProfileCustomizer";
+import { User, Palette } from "lucide-react";
 
 export default function SettingsPage() {
   const { business, updateBusinessSettings, contacts, catalog, faqs, appointments } = useApp();
 
-  const [activeTab, setActiveTab] = useState<"whatsapp" | "ai" | "calendar" | "followup" | "business" | "data">("whatsapp");
+  const [activeTab, setActiveTab] = useState<"profile" | "whatsapp" | "ai" | "calendar" | "followup" | "data">("profile");
   const [waConnectionMode, setWaConnectionMode] = useState<"qr" | "meta">("qr");
 
   // Champs WhatsApp
@@ -77,6 +79,11 @@ export default function SettingsPage() {
   const [bizName, setBizName] = useState(business.name);
   const [bizSector, setBizSector] = useState(business.sector || "");
 
+  useEffect(() => {
+    if (business.name) setBizName(business.name);
+    if (business.sector) setBizSector(business.sector);
+  }, [business.name, business.sector]);
+
   const [isSaved, setIsSaved] = useState(false);
 
   const webhookCallbackUrl = typeof window !== "undefined"
@@ -113,6 +120,13 @@ export default function SettingsPage() {
       } else if (params.get("google_error") === "missing_client_id") {
         setActiveTab("calendar");
         setGmailFeedback("Astuce : Pour la redirection accounts.google.com, configurez GOOGLE_CLIENT_ID dans .env.local. La liaison directe par adresse email ci-dessous est déjà 100% active.");
+      }
+
+      const tabParam = params.get("tab");
+      if (tabParam === "profile" || tabParam === "business") {
+        setActiveTab("profile");
+      } else if (tabParam === "whatsapp" || tabParam === "ai" || tabParam === "calendar" || tabParam === "followup" || tabParam === "data") {
+        setActiveTab(tabParam as any);
       }
     }
   }, [updateBusinessSettings, googleCalendarEmail]);
@@ -223,7 +237,7 @@ export default function SettingsPage() {
             Paramètres & Intégrations
           </h1>
           <p className="text-xs text-slate-500 mt-1">
-            Configurez votre numéro Meta WhatsApp Cloud et la personnalité de l'IA Claude.
+            Configurez votre numéro Meta WhatsApp Cloud et la personnalité de l'IA Izimarket.
           </p>
         </div>
 
@@ -238,6 +252,18 @@ export default function SettingsPage() {
 
       {/* Tabs Défilables avec le doigt sur mobile */}
       <div className="flex items-center gap-2 border-b border-slate-200 dark:border-slate-800 pb-3 overflow-x-auto no-scrollbar">
+        <button
+          onClick={() => setActiveTab("profile")}
+          className={`flex items-center gap-2 px-3.5 sm:px-4 py-2 rounded-xl text-xs font-bold transition-all shrink-0 whitespace-nowrap cursor-pointer ${
+            activeTab === "profile"
+              ? "bg-emerald-600 text-white shadow-sm"
+              : "text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800"
+          }`}
+        >
+          <User className="h-4 w-4" />
+          <span>Profil & Marque</span>
+        </button>
+
         <button
           onClick={() => setActiveTab("whatsapp")}
           className={`flex items-center gap-2 px-3.5 sm:px-4 py-2 rounded-xl text-xs font-bold transition-all shrink-0 whitespace-nowrap cursor-pointer ${
@@ -286,17 +312,7 @@ export default function SettingsPage() {
           <span>Relances (J+3)</span>
         </button>
 
-        <button
-          onClick={() => setActiveTab("business")}
-          className={`flex items-center gap-2 px-3.5 sm:px-4 py-2 rounded-xl text-xs font-bold transition-all shrink-0 whitespace-nowrap cursor-pointer ${
-            activeTab === "business"
-              ? "bg-emerald-600 text-white shadow-sm"
-              : "text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800"
-          }`}
-        >
-          <Globe className="h-4 w-4" />
-          <span>Entreprise & Profil</span>
-        </button>
+        {/* Onglet business remplacé par profile au début */}
 
         <button
           onClick={() => setActiveTab("data")}
@@ -585,7 +601,7 @@ export default function SettingsPage() {
             <div className="p-4 rounded-2xl bg-amber-50/60 dark:bg-amber-950/20 border border-amber-200/60 dark:border-amber-800/40 text-xs space-y-1.5 text-amber-900 dark:text-amber-300">
               <p className="font-bold">Transfert humain automatique (Handoff) :</p>
               <p className="text-[11px] text-amber-800 dark:text-amber-400">
-                Claude bascule automatiquement la conversation en mode Humain dès que le client demande explicitement à parler à un conseiller, ou si l'information n'est pas présente dans la FAQ/Catalogue. Vous recevez alors une notification dans l'inbox.
+                Izimarket bascule automatiquement la conversation en mode Humain dès que le client demande explicitement à parler à un conseiller, ou si l'information n'est pas présente dans la FAQ/Catalogue. Vous recevez alors une notification dans l'inbox.
               </p>
             </div>
 
@@ -605,7 +621,7 @@ export default function SettingsPage() {
                   Synchronisation Google Agenda (Google Calendar)
                 </h3>
                 <p className="text-xs text-slate-500 mt-1">
-                  Connectez votre Google Agenda professionnel pour que l'IA Claude enregistre et synchronise directement les visites et rendez-vous des prospects WhatsApp.
+                  Connectez votre Google Agenda professionnel pour que l'IA Izimarket enregistre et synchronise directement les visites et rendez-vous des prospects WhatsApp.
                 </p>
               </div>
 
@@ -723,7 +739,7 @@ export default function SettingsPage() {
                   Synchronisation automatique des rendez-vous
                 </p>
                 <p className="text-[11px] text-slate-500 mt-0.5">
-                  Chaque fois qu'un prospect demande un rendez-vous sur WhatsApp, Claude l'inscrit automatiquement dans votre agenda.
+                  Chaque fois qu'un prospect demande un rendez-vous sur WhatsApp, Izimarket l'inscrit automatiquement dans votre agenda.
                 </p>
               </div>
               <button
@@ -821,7 +837,7 @@ export default function SettingsPage() {
                 className="w-full text-xs px-3.5 py-2.5 rounded-xl border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-900 text-slate-900 dark:text-white placeholder-slate-400 dark:placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-emerald-500 font-medium font-mono"
               />
               <p className="text-[11px] text-slate-500 mt-1">
-                Si vous possédez un planning de rendez-vous Google Workspace, Claude peut aussi transmettre ce lien aux clients souhaitant choisir eux-mêmes leur créneau.
+                Si vous possédez un planning de rendez-vous Google Workspace, Izimarket peut aussi transmettre ce lien aux clients souhaitant choisir eux-mêmes leur créneau.
               </p>
             </div>
 
@@ -923,7 +939,7 @@ export default function SettingsPage() {
                   onChange={(e) => setFollowupMode(e.target.value as any)}
                   className="w-full text-xs px-3.5 py-2.5 rounded-xl border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-900 text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-amber-500 font-semibold"
                 >
-                  <option value="automatic">🤖 Automatique (Claude envoie seul)</option>
+                  <option value="automatic">🤖 Automatique (Izimarket envoie seul)</option>
                   <option value="manual">👤 Semi-auto (Validation en 1 clic)</option>
                 </select>
                 <p className="text-[11px] text-slate-500 mt-1">
@@ -954,7 +970,7 @@ export default function SettingsPage() {
                 placeholder="Message de relance avec variables..."
               />
               <p className="text-[11px] text-slate-500">
-                Ce modèle est utilisé par Claude pour s'adresser avec respect et politesse (Téranga) au prospect silencieux.
+                Ce modèle est utilisé par Izimarket pour s'adresser avec respect et politesse (Téranga) au prospect silencieux.
               </p>
             </div>
 
@@ -976,48 +992,9 @@ export default function SettingsPage() {
         </div>
       )}
 
-      {/* TAB 4 : ENTREPRISE */}
-      {activeTab === "business" && (
-        <div className="space-y-6">
-          <div className="bg-white dark:bg-slate-900 rounded-3xl p-6 md:p-8 border border-slate-200 dark:border-slate-800 shadow-sm space-y-6">
-            <h3 className="text-base font-bold text-slate-900 dark:text-white border-b border-slate-100 dark:border-slate-800 pb-4">
-              Identité de l'Entreprise
-            </h3>
-
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
-              <div>
-                <label className="text-xs font-bold text-slate-700 dark:text-slate-300 block mb-1.5">
-                  Nom commercial de l'entreprise
-                </label>
-                <input
-                  type="text"
-                  value={bizName}
-                  onChange={(e) => setBizName(e.target.value)}
-                  className="w-full text-xs px-3.5 py-2.5 rounded-xl border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-900 text-slate-900 dark:text-white placeholder-slate-400 dark:placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-emerald-500 font-semibold"
-                />
-              </div>
-
-              <div>
-                <label className="text-xs font-bold text-slate-700 dark:text-slate-300 block mb-1.5">
-                  Secteur d'activité (Ex: Immobilier Dakar, Prêt-à-porter...)
-                </label>
-                <input
-                  type="text"
-                  value={bizSector}
-                  onChange={(e) => setBizSector(e.target.value)}
-                  className="w-full text-xs px-3.5 py-2.5 rounded-xl border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-900 text-slate-900 dark:text-white placeholder-slate-400 dark:placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-emerald-500 font-medium"
-                />
-              </div>
-            </div>
-
-            <div className="p-4 rounded-2xl bg-slate-50 dark:bg-slate-800/50 border border-slate-200/80 dark:border-slate-800 text-xs text-slate-500 space-y-1">
-              <p className="font-semibold text-slate-700 dark:text-slate-300">Sécurité & Isolation RLS :</p>
-              <p>
-                Toutes vos données (prospects, messages, catalogue) sont strictement isolées par votre identifiant unique <span className="font-mono text-emerald-600">{business.id}</span> et protégées par Row Level Security dans Postgres Supabase.
-              </p>
-            </div>
-          </div>
-        </div>
+      {/* TAB 1 : PROFIL & MARQUE */}
+      {activeTab === "profile" && (
+        <ProfileCustomizer />
       )}
 
       {/* TAB 5 : BASE DE DONNÉES & IMPORT */}
@@ -1062,7 +1039,7 @@ export default function SettingsPage() {
               <div className="p-4 rounded-2xl bg-slate-50 dark:bg-slate-800/50 border border-slate-200/80 dark:border-slate-800">
                 <p className="text-xs font-medium text-slate-500">Base FAQ / Réponses IA</p>
                 <p className="text-2xl font-black text-slate-900 dark:text-white mt-1">{faqs.length}</p>
-                <p className="text-[11px] text-slate-400 mt-1">Questions/réponses apprises par Claude</p>
+                <p className="text-[11px] text-slate-400 mt-1">Questions/réponses apprises par Izimarket</p>
               </div>
             </div>
 

@@ -169,7 +169,7 @@ export default function ProspectsPage() {
             </span>
           </h1>
           <p className="text-xs text-slate-500 mt-1">
-            Qualifiés automatiquement par Claude Sonnet depuis WhatsApp avec relance intelligente J+3.
+            Qualifiés automatiquement par Izimarket depuis WhatsApp avec relance intelligente J+3.
           </p>
         </div>
 
@@ -620,7 +620,7 @@ export default function ProspectsPage() {
             {/* Zone de texte modifiable (Texte saisi en blanc haute visibilité) */}
             <div>
               <label className="text-xs font-semibold text-slate-300 block mb-1.5 flex items-center justify-between">
-                <span>Message de relance WhatsApp (généré par Claude)</span>
+                <span>Message de relance WhatsApp (généré par Izimarket)</span>
                 <span className="text-[10px] text-emerald-400 flex items-center gap-1">
                   <Sparkles className="h-3 w-3" /> Ton Téranga
                 </span>

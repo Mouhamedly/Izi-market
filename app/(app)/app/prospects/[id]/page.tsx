@@ -403,7 +403,7 @@ export default function ProspectDetailPage() {
                       <div className="flex items-center justify-between text-[10px] text-slate-400 font-semibold">
                         <span>
                           {msg.sender === "ai"
-                            ? "🤖 Claude IA"
+                            ? "🤖 Izimarket IA"
                             : msg.sender === "agent"
                             ? "👤 Agent"
                             : "📱 Client"}
@@ -556,7 +556,7 @@ export default function ProspectDetailPage() {
             {/* Zone de texte modifiable (Texte en blanc haute lisibilité) */}
             <div>
               <label className="text-xs font-semibold text-slate-300 block mb-1.5 flex items-center justify-between">
-                <span>Message de relance WhatsApp (généré par Claude)</span>
+                <span>Message de relance WhatsApp (généré par Izimarket)</span>
                 <span className="text-[10px] text-emerald-400 flex items-center gap-1">
                   <Sparkles className="h-3 w-3" /> Ton Téranga
                 </span>

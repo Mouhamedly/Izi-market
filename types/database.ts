@@ -34,6 +34,17 @@ export interface Business {
   followup_max_attempts: number; // default: 2
   followup_mode: 'automatic' | 'manual'; // automatic ou suggestion manuelle
   followup_template: string;
+  // Personnalisation du Profil Utilisateur & Marque
+  owner_name?: string | null;
+  owner_role?: string | null;
+  contact_email?: string | null;
+  contact_phone?: string | null;
+  tagline?: string | null;
+  city?: string | null;
+  assistant_name?: string | null;
+  brand_color?: string | null;
+  currency?: string | null;
+  signature?: string | null;
   created_at: string;
   updated_at: string;
 }

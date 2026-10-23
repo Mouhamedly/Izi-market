@@ -175,7 +175,7 @@ export default function AppointmentsPage() {
             </span>
           </div>
           <p className="text-xs text-slate-500 mt-1">
-            Gérez les visites et rendez-vous planifiés automatiquement par l'IA WhatsApp Claude et synchronisés avec Google Calendar.
+            Gérez les visites et rendez-vous planifiés automatiquement par l'IA WhatsApp Izimarket et synchronisés avec Google Calendar.
           </p>
         </div>
 

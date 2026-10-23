@@ -350,7 +350,7 @@ export default function InboxPage() {
                       <div className="flex items-center gap-1 text-[10px] text-emerald-200 mb-1 font-semibold">
                         {msg.sender === "ai" ? (
                           <>
-                            <Bot className="h-3 w-3" /> Répondu par Claude IA
+                            <Bot className="h-3 w-3" /> Répondu par Izimarket IA
                           </>
                         ) : (
                           <>

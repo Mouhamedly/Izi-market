@@ -551,7 +551,7 @@ export default function CataloguePage() {
             Catalogue de Produits & Biens
           </h1>
           <p className="text-xs text-slate-500 mt-1 max-w-2xl">
-            Gérez vos offres de <strong>Location</strong> et de <strong>Vente</strong> avec adresses, liens Google Maps et photos réelles. Votre assistant IA Claude utilise ce catalogue pour renseigner vos clients sur WhatsApp.
+            Gérez vos offres de <strong>Location</strong> et de <strong>Vente</strong> avec adresses, liens Google Maps et photos réelles. Votre assistant IA Izimarket utilise ce catalogue pour renseigner vos clients sur WhatsApp.
           </p>
         </div>
 
@@ -1440,7 +1440,7 @@ export default function CataloguePage() {
                     className="w-full px-3.5 py-2 rounded-xl text-xs font-semibold bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 text-slate-900 dark:text-white placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-emerald-500 font-mono"
                   />
                   <p className="text-[10px] text-slate-400">
-                    L'IA Claude enverra ce lien Google Maps à vos prospects WhatsApp pour faciliter leur visite.
+                    L'IA Izimarket enverra ce lien Google Maps à vos prospects WhatsApp pour faciliter leur visite.
                   </p>
                 </div>
               </div>

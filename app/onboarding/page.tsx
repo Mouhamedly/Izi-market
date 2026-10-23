@@ -8,17 +8,20 @@ import { AiTone } from "@/types/database";
 export default function OnboardingPage() {
   const router = useRouter();
   const [step, setStep] = useState(1);
-  const [companyName, setCompanyName] = useState("Welma Digital");
-  const [sector, setSector] = useState("Solutions Digitales & Services");
+  const [companyName, setCompanyName] = useState("");
+  const [sector, setSector] = useState("Commerce & Services");
   const [aiTone, setAiTone] = useState<AiTone>("teranga");
   const [welcomeMessage, setWelcomeMessage] = useState(
-    "Salam Alaykoum ! Bienvenue chez Welma Digital. Comment puis-je vous aider aujourd'hui ?"
+    "Salam Alaykoum ! Bienvenue chez nous. Comment puis-je vous aider aujourd'hui ?"
   );
 
   useEffect(() => {
     if (typeof window !== "undefined") {
       const savedName = sessionStorage.getItem("izi_temp_biz_name");
-      if (savedName) setCompanyName(savedName);
+      if (savedName) {
+        setCompanyName(savedName);
+        setWelcomeMessage(`Salam Alaykoum ! Bienvenue chez ${savedName}. Comment puis-je vous aider aujourd'hui ?`);
+      }
     }
   }, []);
 
@@ -67,7 +70,7 @@ export default function OnboardingPage() {
             Personnalisez votre Assistant WhatsApp
           </h1>
           <p className="text-xs text-slate-400">
-            Adaptez Claude aux spécificités de vos clients au Sénégal
+            Adaptez Izimarket aux spécificités de vos clients au Sénégal
           </p>
         </div>
 
@@ -100,7 +103,13 @@ export default function OnboardingPage() {
                 <input
                   type="text"
                   value={companyName}
-                  onChange={(e) => setCompanyName(e.target.value)}
+                  onChange={(e) => {
+                    setCompanyName(e.target.value);
+                    if (e.target.value) {
+                      setWelcomeMessage(`Salam Alaykoum ! Bienvenue chez ${e.target.value}. Comment puis-je vous aider aujourd'hui ?`);
+                    }
+                  }}
+                  placeholder="Ex: Mbolyama Immobilier, Keur Serigne, Dakar Tech..."
                   className="w-full text-xs px-4 py-3 rounded-xl bg-slate-950 border border-slate-800 text-white placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-emerald-500 font-bold"
                 />
               </div>
@@ -216,7 +225,7 @@ export default function OnboardingPage() {
                   <CheckCircle2 className="h-4 w-4 text-emerald-400" /> Tout est prêt !
                 </p>
                 <p className="text-[11px] text-emerald-200/80">
-                  Votre espace de travail est prêt avec FAQ, Catalogue et le Simulateur WhatsApp pour tester immédiatement Claude.
+                  Votre espace de travail est prêt avec FAQ, Catalogue et le Simulateur WhatsApp pour tester immédiatement Izimarket.
                 </p>
               </div>
 

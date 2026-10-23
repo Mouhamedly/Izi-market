@@ -690,7 +690,7 @@ export default function ImportDatabasePage() {
                 {activeTab === "faq" && (
                   <tr>
                     <th className="px-4 py-3 w-5/12">Question Fréquente</th>
-                    <th className="px-4 py-3 w-7/12">Réponse de l'IA (Claude)</th>
+                    <th className="px-4 py-3 w-7/12">Réponse de l'IA (Izimarket)</th>
                   </tr>
                 )}
               </thead>

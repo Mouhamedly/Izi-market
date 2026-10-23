@@ -114,7 +114,7 @@ export default function DashboardPage() {
               Bonjour, {business.name} 👋
             </h1>
             <p className="text-xs sm:text-sm text-emerald-100/80 max-w-xl">
-              Votre assistant IA Claude qualifie vos prospects WhatsApp 24h/24 au Sénégal. Vos données sont synchronisées en direct.
+              Votre assistant IA Izimarket qualifie vos prospects WhatsApp 24h/24 au Sénégal. Vos données sont synchronisées en direct.
             </p>
           </div>
 
@@ -386,7 +386,7 @@ export default function DashboardPage() {
                           : "bg-emerald-100 text-emerald-700 dark:bg-emerald-950 dark:text-emerald-300"
                       }`}
                     >
-                      {msg.sender === "ai" ? "IA Claude" : msg.sender === "agent" ? "Agent Humain" : "Client"}
+                      {msg.sender === "ai" ? "IA Izimarket" : msg.sender === "agent" ? "Agent Humain" : "Client"}
                     </span>
                   </div>
                 </div>

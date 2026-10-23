@@ -43,6 +43,17 @@ export default function LandingPage() {
   const [isSimulatorOpen, setIsSimulatorOpen] = useState(false);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
+  // Redirection automatique si retour d'authentification Google OAuth (?code=...)
+  React.useEffect(() => {
+    if (typeof window !== "undefined") {
+      const urlParams = new URLSearchParams(window.location.search);
+      const code = urlParams.get("code");
+      if (code) {
+        window.location.replace(`/api/auth/callback?code=${code}&next=/app`);
+      }
+    }
+  }, []);
+
   // Démo interactive en direct (Section 6)
   const [demoInput, setDemoInput] = useState("");
   const [demoMessages, setDemoMessages] = useState<Array<{ sender: "user" | "ai"; text: string; time: string }>>([
