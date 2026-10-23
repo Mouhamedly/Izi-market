@@ -38,9 +38,12 @@ export async function POST(req: Request) {
       searchTerm = "",
       country = "SN", // Sénégal par défaut
       resultsLimit = 20,
-      activeStatus = "ACTIVE",
       runId
     } = body;
+
+    // Normalisation d'activeStatus selon le schéma Apify : "", "active" ou "inactive"
+    const rawStatus = (body.activeStatus || "active").toString().toLowerCase().trim();
+    const activeStatus = rawStatus === "inactive" ? "inactive" : rawStatus === "all" || rawStatus === "" ? "" : "active";
 
     // Annulation d'un run
     if (action === "abort" && runId) {
@@ -58,7 +61,8 @@ export async function POST(req: Request) {
       formattedUrls = startUrls.map((u: any) => typeof u === "string" ? { url: u } : u);
     } else if (searchTerm?.trim()) {
       const encodedQuery = encodeURIComponent(searchTerm.trim());
-      const adsLibraryUrl = `https://www.facebook.com/ads/library/?active_status=${activeStatus.toLowerCase()}&ad_type=all&country=${country}&q=${encodedQuery}&search_type=keyword_unordered&media_type=all`;
+      const urlStatus = activeStatus || "all";
+      const adsLibraryUrl = `https://www.facebook.com/ads/library/?active_status=${urlStatus}&ad_type=all&country=${country}&q=${encodedQuery}&search_type=keyword_unordered&media_type=all`;
       formattedUrls = [{ url: adsLibraryUrl }];
     } else {
       return NextResponse.json(
@@ -82,6 +86,7 @@ export async function POST(req: Request) {
     console.log("[Apify Facebook Ads] Lancement run:", {
       searchTerm,
       country,
+      activeStatus,
       resultsLimit: safeLimit,
       urlsCount: formattedUrls.length
     });

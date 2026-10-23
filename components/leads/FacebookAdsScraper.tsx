@@ -56,7 +56,7 @@ export function FacebookAdsScraper() {
   const [searchTerm, setSearchTerm] = useState("immobilier dakar");
   const [country, setCountry] = useState("SN");
   const [resultsLimit, setResultsLimit] = useState(15);
-  const [activeStatus, setActiveStatus] = useState("ACTIVE");
+  const [activeStatus, setActiveStatus] = useState("active");
 
   const [isLoading, setIsLoading] = useState(false);
   const [currentRunId, setCurrentRunId] = useState<string | null>(null);
@@ -122,14 +122,24 @@ export function FacebookAdsScraper() {
           searchTerm: searchTerm.trim(),
           country,
           resultsLimit,
-          activeStatus
+          activeStatus: "active"
         })
       });
 
       const data = await res.json();
 
       if (!res.ok) {
-        setError(data.error || "Échec du lancement du scraper.");
+        let msg = data.error || "Échec du lancement du scraper.";
+        try {
+          if (typeof data.error === "string" && data.error.includes("{")) {
+            const jsonPart = data.error.slice(data.error.indexOf("{"));
+            const parsed = JSON.parse(jsonPart);
+            if (parsed?.error?.message) {
+              msg = `Erreur Apify : ${parsed.error.message}`;
+            }
+          }
+        } catch (_) {}
+        setError(msg);
         setIsLoading(false);
         return;
       }
